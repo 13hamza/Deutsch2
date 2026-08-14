@@ -1,4 +1,14 @@
-// src/components/Sentence.jsx
+/**
+ * Sentence Component (Sentence.jsx)
+ * ---------------------------------
+ * Component card for full German sentences in the review collection.
+ * 
+ * Beginners Guide:
+ * 1. Sentence display: Displays a full sentence with word count metrics.
+ * 2. Interactive Expansion: Tapping reveals full English sentence translation.
+ * 3. Audio TTS: Speaker icon pronounces the whole German sentence.
+ */
+
 import React, { useState } from 'react';
 import {
   View,
@@ -13,6 +23,9 @@ const Sentence = ({ german, english }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [speaking, setSpeaking] = useState(false);
 
+  /**
+   * Speaks full German sentence
+   */
   const speakSentence = () => {
     if (speaking) {
       Speech.stop();
@@ -55,6 +68,7 @@ const Sentence = ({ german, english }) => {
         />
       </View>
       
+      {/* Expanded view showing English translation and word count tag */}
       {isExpanded && (
         <View style={styles.expandedContent}>
           <Text style={styles.englishText}>{english}</Text>

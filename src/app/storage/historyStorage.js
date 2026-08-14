@@ -1,10 +1,28 @@
-// src/storage/historyStorage.js
+/**
+ * History Storage Module (historyStorage.js)
+ * ------------------------------------------
+ * Persistent key-value storage layer using React Native's `@react-native-async-storage/async-storage`.
+ * 
+ * Beginners Guide:
+ * 1. AsyncStorage: Save data locally on mobile devices (persists across app restarts).
+ * 2. Serialization: Objects are serialized to JSON strings (`JSON.stringify`) when saved, and parsed back (`JSON.parse`) when read.
+ * 3. Functions included:
+ *    - `getHistory`: Reads all saved entries sorted newest-first.
+ *    - `saveTranslation`: Appends new translation entry.
+ *    - `deleteTranslation`: Deletes specific item by ID.
+ *    - `clearHistory`: Wipes all saved history entries.
+ *    - `searchHistory`: Case-insensitive text search.
+ */
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Storage key key-name in key-value store
 const HISTORY_KEY = '@german_translator_history';
-const STORAGE_VERSION = '1.0';
 
-// Get all history items
+/**
+ * Retrieves all stored translation records from device disk storage
+ * @returns {Promise<Array>} Array of translation objects sorted by newest first
+ */
 export const getHistory = async () => {
   try {
     const json = await AsyncStorage.getItem(HISTORY_KEY);
@@ -12,7 +30,7 @@ export const getHistory = async () => {
       return [];
     }
     const history = JSON.parse(json);
-    // Sort by timestamp descending (newest first)
+    // Sort array by timestamp descending (newest entries at top of list)
     return history.sort((a, b) => 
       new Date(b.timestamp) - new Date(a.timestamp)
     );
@@ -22,17 +40,21 @@ export const getHistory = async () => {
   }
 };
 
-// Save a translation
+/**
+ * Saves a new translation item to local storage
+ * @param {Object} translation - `{ german: string, english: string, timestamp?: string }`
+ * @returns {Promise<Object>} Newly created translation object with unique ID
+ */
 export const saveTranslation = async (translation) => {
   try {
     const history = await getHistory();
     const newItem = {
-      id: Date.now().toString(),
+      id: Date.now().toString(), // Generate unique timestamp-based ID string
       ...translation,
       timestamp: translation.timestamp || new Date().toISOString(),
     };
     
-    // Add to history (limit to 1000 items)
+    // Prepend new item to front of history array, capped at 1000 items
     const updatedHistory = [newItem, ...history].slice(0, 1000);
     await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
     return newItem;
@@ -42,7 +64,9 @@ export const saveTranslation = async (translation) => {
   }
 };
 
-// Delete a translation
+/**
+ * Deletes a single item by unique ID string
+ */
 export const deleteTranslation = async (id) => {
   try {
     const history = await getHistory();
@@ -55,7 +79,9 @@ export const deleteTranslation = async (id) => {
   }
 };
 
-// Delete all history
+/**
+ * Deletes all stored history records
+ */
 export const clearHistory = async () => {
   try {
     await AsyncStorage.removeItem(HISTORY_KEY);
@@ -66,7 +92,9 @@ export const clearHistory = async () => {
   }
 };
 
-// Search history
+/**
+ * Filters stored history array matching search query string
+ */
 export const searchHistory = async (query) => {
   try {
     const history = await getHistory();
@@ -83,7 +111,9 @@ export const searchHistory = async (query) => {
   }
 };
 
-// Get history by date
+/**
+ * Filters history items matching specific date object
+ */
 export const getHistoryByDate = async (date) => {
   try {
     const history = await getHistory();
@@ -97,7 +127,9 @@ export const getHistoryByDate = async (date) => {
   }
 };
 
-// Export history as JSON
+/**
+ * Exports history array as formatted JSON string
+ */
 export const exportHistory = async () => {
   try {
     const history = await getHistory();
@@ -108,7 +140,9 @@ export const exportHistory = async () => {
   }
 };
 
-// Import history from JSON
+/**
+ * Overwrites local history with imported JSON data array string
+ */
 export const importHistory = async (jsonData) => {
   try {
     const history = JSON.parse(jsonData);

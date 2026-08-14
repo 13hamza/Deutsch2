@@ -1,4 +1,19 @@
-// src/components/GermanInput.jsx
+/**
+ * GermanInput Component (GermanInput.jsx)
+ * --------------------------------------
+ * Reusable multiline text input component with clear button and action button.
+ * 
+ * Beginners Guide:
+ * 1. Props:
+ *    - `value`: Current text string inside input box.
+ *    - `onChangeText`: Callback function triggered when user types or deletes text.
+ *    - `onTranslate`: Function triggered when user taps the "Translate" button.
+ *    - `isLoading`: Boolean to show loading spinner state.
+ *    - `placeholder`: Hint text shown when input box is empty.
+ * 2. TextInput: Native component allowing multi-line text input.
+ * 3. TouchableOpacity: Button wrapper that provides smooth touch feedback opacity when tapped.
+ */
+
 import React from 'react';
 import {
   View,
@@ -6,7 +21,6 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -19,6 +33,7 @@ const GermanInput = ({
 }) => {
   return (
     <View style={styles.container}>
+      {/* Input container with relative positioning for absolute clear icon */}
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
@@ -28,8 +43,9 @@ const GermanInput = ({
           onChangeText={onChangeText}
           multiline
           numberOfLines={4}
-          textAlignVertical="top"
+          textAlignVertical="top" // Aligns text to top of box on Android
         />
+        {/* Quick clear (X) icon appears only when input has text */}
         {value.length > 0 && (
           <TouchableOpacity 
             onPress={() => onChangeText('')} 
@@ -40,10 +56,11 @@ const GermanInput = ({
         )}
       </View>
 
+      {/* Action Translate Button */}
       <TouchableOpacity
         style={[styles.translateButton, isLoading && styles.disabledButton]}
         onPress={onTranslate}
-        disabled={isLoading}
+        disabled={isLoading} // Disable button interaction while loading
       >
         <Ionicons name="arrow-forward" size={20} color="#fff" />
         <Text style={styles.buttonText}>
@@ -59,6 +76,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
+    // Drop shadow styling for iOS & Android
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

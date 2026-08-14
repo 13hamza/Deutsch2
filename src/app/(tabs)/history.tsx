@@ -1,4 +1,16 @@
-// src/app/(tabs)/history.tsx
+/**
+ * HistoryScreen Component ((tabs)/history.tsx)
+ * -------------------------------------------
+ * Displays a list of all saved translation records stored in local device storage.
+ * 
+ * Beginners Guide:
+ * 1. useFocusEffect: An Expo Router / React Navigation hook that triggers every time this screen becomes active/focused.
+ * 2. FlatList: A high-performance React Native component for rendering long scrollable lists efficiently.
+ * 3. Search & Filter: Filters saved translations live as the user types in the search box.
+ * 4. RefreshControl: Adds "pull to refresh" capability to re-fetch history manually.
+ * 5. Clear & Delete: Provides user alerts to delete single translation items or wipe all history.
+ */
+
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -15,6 +27,7 @@ import { Ionicons } from '@expo/vector-icons';
 import HistoryItem from '../components/HistoryItem';
 import { getHistory, deleteTranslation, searchHistory, clearHistory } from '../storage/historyStorage';
 
+// TypeScript Interface describing the shape of a single history entry
 export interface HistoryItemType {
   id: string;
   german: string;
@@ -23,11 +36,18 @@ export interface HistoryItemType {
 }
 
 export default function HistoryScreen() {
+  // Array holding all stored history items
   const [history, setHistory] = useState<HistoryItemType[]>([]);
+  // Array holding history items filtered by user search query
   const [filteredHistory, setFilteredHistory] = useState<HistoryItemType[]>([]);
+  // State for current search text typed into the search bar
   const [searchQuery, setSearchQuery] = useState('');
+  // Pull-to-refresh state indicator
   const [refreshing, setRefreshing] = useState(false);
 
+  /**
+   * Loads history entries from AsyncStorage
+   */
   const loadHistory = useCallback(async () => {
     try {
       const data: HistoryItemType[] = await getHistory();
@@ -43,13 +63,16 @@ export default function HistoryScreen() {
     }
   }, [searchQuery]);
 
-  // Reload history whenever screen comes into focus
+  // Re-run loadHistory whenever user switches tabs to view the History screen
   useFocusEffect(
     useCallback(() => {
       loadHistory();
     }, [loadHistory])
   );
 
+  /**
+   * Handles typing inside the search input box
+   */
   const handleSearchChange = async (text: string) => {
     setSearchQuery(text);
     if (text.trim()) {
@@ -60,6 +83,9 @@ export default function HistoryScreen() {
     }
   };
 
+  /**
+   * Deletes an individual translation item after user confirmation prompt
+   */
   const handleDelete = async (id: string) => {
     Alert.alert(
       'Delete Item',
@@ -71,13 +97,16 @@ export default function HistoryScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteTranslation(id);
-            await loadHistory();
+            await loadHistory(); // Refresh list after deletion
           },
         },
       ]
     );
   };
 
+  /**
+   * Clears all translation records after confirmation prompt
+   */
   const handleClearAll = () => {
     if (history.length === 0) return;
     Alert.alert(
@@ -97,11 +126,17 @@ export default function HistoryScreen() {
     );
   };
 
+  /**
+   * Pull-to-refresh callback function
+   */
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadHistory().then(() => setRefreshing(false));
   }, [loadHistory]);
 
+  /**
+   * Helper function: Groups translation items by date string (e.g., "8/14/2026")
+   */
   const groupByDate = (items: HistoryItemType[]): [string, HistoryItemType[]][] => {
     const groups: Record<string, HistoryItemType[]> = {};
     items.forEach(item => {
@@ -114,14 +149,19 @@ export default function HistoryScreen() {
     return Object.entries(groups);
   };
 
+  /**
+   * Renders a single grouped section (Date header + items inside that date)
+   */
   const renderSection = ({ item }: { item: [string, HistoryItemType[]] }) => {
     const [date, items] = item;
     return (
       <View style={styles.section}>
+        {/* Date Group Header */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{date}</Text>
           <Text style={styles.sectionCount}>{items.length} {items.length === 1 ? 'item' : 'items'}</Text>
         </View>
+        {/* Render each HistoryItem card */}
         {items.map((historyItem: HistoryItemType) => (
           <HistoryItem 
             key={historyItem.id || Math.random().toString()} 
@@ -135,6 +175,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Top Search Bar & Clear All Button */}
       <View style={styles.topBar}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
@@ -157,6 +198,7 @@ export default function HistoryScreen() {
         )}
       </View>
 
+      {/* Conditional rendering: Empty state vs FlatList */}
       {filteredHistory.length === 0 ? (
         <View style={styles.emptyState}>
           <Ionicons name="time-outline" size={64} color="#ccc" />

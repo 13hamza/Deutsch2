@@ -1,12 +1,25 @@
-// src/app/services/translator.js
+/**
+ * Translator Service Module (translator.js)
+ * ----------------------------------------
+ * Translates German text input to English.
+ * 
+ * Beginners Guide:
+ * Multi-tier translation pipeline:
+ * Tier 1: Official Google Translate API (if user configures a Google API key).
+ * Tier 2: Free MyMemory Translation API endpoint (`https://api.mymemory.translated.net`).
+ * Tier 3: Local offline dictionary fallback (`DICTIONARY` object) for common German words and phrases.
+ */
 
 let USER_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY || '';
 
+/**
+ * Updates Google Translate API key dynamically
+ */
 export const setApiKey = (key) => {
   USER_API_KEY = key;
 };
 
-// Common German to English translations for offline & development fallback
+// Built-in German-to-English dictionary for offline use
 const DICTIONARY = {
   // Common Words
   'haus': 'House',
@@ -63,7 +76,9 @@ const DICTIONARY = {
 };
 
 /**
- * Main translation function
+ * Primary translation function
+ * @param {string} text - German text input
+ * @returns {Promise<string>} English translated string
  */
 export const translateText = async (text) => {
   if (!text || !text.trim()) {
@@ -72,7 +87,7 @@ export const translateText = async (text) => {
 
   const cleanText = text.trim();
 
-  // If user provided a Google Translate API key, use official REST API endpoint
+  // Tier 1: Official Google Translate REST API
   if (USER_API_KEY && USER_API_KEY !== 'YOUR_API_KEY') {
     try {
       const response = await fetch(
@@ -97,7 +112,7 @@ export const translateText = async (text) => {
     }
   }
 
-  // Try free MyMemory Translation API
+  // Tier 2: Free MyMemory Translation API endpoint
   try {
     const encodedText = encodeURIComponent(cleanText);
     const response = await fetch(
@@ -111,10 +126,13 @@ export const translateText = async (text) => {
     console.warn('Free API offline or failed, using dictionary fallback:', err);
   }
 
-  // Fallback to local dictionary
+  // Tier 3: Local dictionary lookup fallback
   return localDictionaryTranslate(cleanText);
 };
 
+/**
+ * Fallback translator using local lookup object
+ */
 const localDictionaryTranslate = (text) => {
   const lower = text.toLowerCase().trim();
   
@@ -122,7 +140,7 @@ const localDictionaryTranslate = (text) => {
     return DICTIONARY[lower];
   }
 
-  // Try word-by-word translation if it's a sentence
+  // Word-by-word translation fallback if input is a sentence
   const words = text.split(/\s+/);
   if (words.length > 1) {
     const translatedWords = words.map(w => {

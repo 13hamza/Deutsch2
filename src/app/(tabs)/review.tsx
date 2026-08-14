@@ -1,4 +1,16 @@
-// src/app/(tabs)/review.tsx
+/**
+ * ReviewScreen Component ((tabs)/review.tsx)
+ * -----------------------------------------
+ * Flashcard-style vocabulary review tab for practicing translated words and sentences.
+ * 
+ * Beginners Guide:
+ * 1. Filtering Logic: Categorizes saved items by word count:
+ *    - Single word (e.g., "Haus") -> Rendered with `<Word />` component card.
+ *    - Multiple words (e.g., "Wie geht es dir?") -> Rendered with `<Sentence />` component card.
+ * 2. React.useMemo: Memoizes the calculated filter output so expensive array filtering only re-runs when inputs change.
+ * 3. Interactive TTS: Each card allows playing pronunciation audio directly.
+ */
+
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -17,11 +29,15 @@ import { getHistory } from '../storage/historyStorage';
 import { HistoryItemType } from './history';
 
 export default function ReviewScreen() {
+  // State variables for saved items, search filter query, and active category tab
   const [items, setItems] = useState<HistoryItemType[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'words' | 'sentences'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
+  /**
+   * Fetches saved items from local storage
+   */
   const loadItems = useCallback(async () => {
     try {
       const history: HistoryItemType[] = await getHistory();
@@ -31,16 +47,20 @@ export default function ReviewScreen() {
     }
   }, []);
 
+  // Reload vocabulary every time user taps onto the Review screen
   useFocusEffect(
     useCallback(() => {
       loadItems();
     }, [loadItems])
   );
 
+  /**
+   * Computed list of items based on filter buttons ("all", "words", "sentences") and search text
+   */
   const filteredItems = React.useMemo(() => {
     let filtered = items;
 
-    // Filter by type
+    // Filter by word count type
     if (filterType === 'words') {
       filtered = filtered.filter(item => 
         item.german && item.german.trim().split(/\s+/).length === 1
@@ -51,7 +71,7 @@ export default function ReviewScreen() {
       );
     }
 
-    // Filter by search query
+    // Filter by user search input query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(item =>
@@ -68,6 +88,9 @@ export default function ReviewScreen() {
     loadItems().then(() => setRefreshing(false));
   }, [loadItems]);
 
+  /**
+   * Chooses appropriate component card representation: Word vs Sentence
+   */
   const renderItem = ({ item }: { item: HistoryItemType }) => {
     const isWord = item.german && item.german.trim().split(/\s+/).length === 1;
     return isWord ? (
@@ -77,6 +100,9 @@ export default function ReviewScreen() {
     );
   };
 
+  /**
+   * Resets active filters and search query back to default
+   */
   const clearFilters = () => {
     setSearchQuery('');
     setFilterType('all');
@@ -84,11 +110,13 @@ export default function ReviewScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header Banner */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Review Vocabulary</Text>
         <Text style={styles.headerSubtext}>Practice and listen to your saved vocabulary</Text>
       </View>
 
+      {/* Search Input Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#999" />
         <TextInput
@@ -104,6 +132,7 @@ export default function ReviewScreen() {
         )}
       </View>
 
+      {/* Filter Category Chips: All / Words / Sentences */}
       <View style={styles.filterContainer}>
         <TouchableOpacity
           style={[styles.filterButton, filterType === 'all' && styles.activeFilter]}
@@ -113,6 +142,7 @@ export default function ReviewScreen() {
             All ({items.length})
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.filterButton, filterType === 'words' && styles.activeFilter]}
           onPress={() => setFilterType('words')}
@@ -121,6 +151,7 @@ export default function ReviewScreen() {
             Words
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.filterButton, filterType === 'sentences' && styles.activeFilter]}
           onPress={() => setFilterType('sentences')}
@@ -129,6 +160,7 @@ export default function ReviewScreen() {
             Sentences
           </Text>
         </TouchableOpacity>
+
         {(searchQuery || filterType !== 'all') && (
           <TouchableOpacity onPress={clearFilters} style={styles.clearFilters}>
             <Ionicons name="close-circle-outline" size={22} color="#666" />
@@ -136,6 +168,7 @@ export default function ReviewScreen() {
         )}
       </View>
 
+      {/* Vocabulary List */}
       <FlatList
         data={filteredItems}
         renderItem={renderItem}

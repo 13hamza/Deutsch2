@@ -1,4 +1,14 @@
-// src/app/components/TranslationCard.jsx
+/**
+ * TranslationCard Component (TranslationCard.jsx)
+ * ----------------------------------------------
+ * Card view component displaying German text, interactive individual word pills, and English translation.
+ * 
+ * Beginners Guide:
+ * 1. expo-speech (`Speech.speak`): Converts string text into spoken audio pronunciation using native device voice capabilities.
+ * 2. Word breakdown: Automatically splits German sentences into individual clickable word pills. Tapping a pill pronounces just that specific word!
+ * 3. Audio state: Toggles volume icon while text is being spoken.
+ */
+
 import React, { useState } from 'react';
 import {
   View,
@@ -10,13 +20,17 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 
 const TranslationCard = ({ germanText, englishText }) => {
+  // Tracks if audio speech is currently active
   const [speaking, setSpeaking] = useState(false);
 
+  /**
+   * Speaks target text using specified language code ('de' for German, 'en' for English)
+   */
   const speakText = (text, language) => {
     const options = {
       language: language === 'de' ? 'de' : 'en',
       pitch: 1,
-      rate: 0.8,
+      rate: 0.8, // Slightly lower rate for clear language learning pronunciation
       onStart: () => setSpeaking(true),
       onDone: () => setSpeaking(false),
       onError: () => setSpeaking(false),
@@ -28,6 +42,9 @@ const TranslationCard = ({ germanText, englishText }) => {
     }
   };
 
+  /**
+   * Stops currently playing audio speech
+   */
   const stopSpeaking = () => {
     try {
       Speech.stop();
@@ -35,6 +52,9 @@ const TranslationCard = ({ germanText, englishText }) => {
     setSpeaking(false);
   };
 
+  /**
+   * Toggles speech playback on/off
+   */
   const handleSpeak = (text, language) => {
     if (speaking) {
       stopSpeaking();
@@ -43,6 +63,9 @@ const TranslationCard = ({ germanText, englishText }) => {
     }
   };
 
+  /**
+   * Splits a sentence into an array of single words
+   */
   const splitIntoWords = (text) => {
     return text.split(/\s+/).filter(word => word.length > 0);
   };
@@ -50,7 +73,7 @@ const TranslationCard = ({ germanText, englishText }) => {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        {/* German Section */}
+        {/* German Flag Header & Speaker Button */}
         <View style={styles.header}>
           <View style={styles.languageBadge}>
             <Text style={styles.languageBadgeText}>🇩🇪 German</Text>
@@ -67,11 +90,14 @@ const TranslationCard = ({ germanText, englishText }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Main German Translated String */}
         <Text style={styles.germanMainText}>{germanText}</Text>
 
+        {/* Interactive Word Breakdown Pills */}
         <Text style={styles.wordSectionTitle}>Tap word to listen:</Text>
         <View style={styles.wordsWrapper}>
           {splitIntoWords(germanText).map((word, wordIndex) => {
+            // Strip punctuation for speech synthesis
             const cleanWord = word.replace(/[^a-zA-ZäöüßÄÖÜ]/g, '');
             return (
               <TouchableOpacity
@@ -85,9 +111,10 @@ const TranslationCard = ({ germanText, englishText }) => {
           })}
         </View>
 
+        {/* Visual Divider Line */}
         <View style={styles.divider} />
 
-        {/* English Section */}
+        {/* English Flag Header & Speaker Button */}
         <View style={styles.header}>
           <View style={styles.languageBadge}>
             <Text style={styles.languageBadgeText}>🇬🇧 English</Text>
@@ -100,6 +127,7 @@ const TranslationCard = ({ germanText, englishText }) => {
           </TouchableOpacity>
         </View>
 
+        {/* English Result Text */}
         <Text style={styles.englishText}>{englishText}</Text>
       </View>
     </View>

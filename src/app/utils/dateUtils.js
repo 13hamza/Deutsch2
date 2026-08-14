@@ -1,4 +1,18 @@
-// src/utils/dateUtils.js
+/**
+ * Date Utility Helper Functions (dateUtils.js)
+ * --------------------------------------------
+ * Helper functions for formatting dates, calculating relative time ("5m ago"), and grouping objects by date.
+ * 
+ * Beginners Guide:
+ * 1. JavaScript Date API: Manipulates date objects (`new Date()`).
+ * 2. `formatDate`: Returns friendly strings like "Today", "Yesterday", or full formatted dates.
+ * 3. `getRelativeTime`: Calculates relative human-readable time strings like "Just now", "10m ago", "3h ago".
+ * 4. `groupByDate`: Transforms an array of objects with timestamps into grouped date arrays.
+ */
+
+/**
+ * Returns human-readable date representation: "Today", "Yesterday", or "Monday, August 14, 2026"
+ */
 export const formatDate = (timestamp) => {
   const date = new Date(timestamp);
   const today = new Date();
@@ -19,6 +33,9 @@ export const formatDate = (timestamp) => {
   }
 };
 
+/**
+ * Formats timestamp into 12-hour local time format (e.g. "02:30 PM")
+ */
 export const formatTime = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleTimeString('en-US', {
@@ -27,6 +44,9 @@ export const formatTime = (timestamp) => {
   });
 };
 
+/**
+ * Calculates human relative time string e.g. "Just now", "15m ago", "2h ago", "4d ago"
+ */
 export const getRelativeTime = (timestamp) => {
   const now = new Date();
   const diff = now - new Date(timestamp);
@@ -47,6 +67,9 @@ export const getRelativeTime = (timestamp) => {
   }
 };
 
+/**
+ * Groups an array of items by date string
+ */
 export const groupByDate = (items) => {
   const groups = {};
   items.forEach(item => {
@@ -64,6 +87,9 @@ export const groupByDate = (items) => {
   }));
 };
 
+/**
+ * Short date format e.g. "Aug 14, 2026"
+ */
 export const formatDateForDisplay = (date) => {
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -72,11 +98,17 @@ export const formatDateForDisplay = (date) => {
   });
 };
 
+/**
+ * Validates if given input produces a valid Date object
+ */
 export const isValidDate = (timestamp) => {
   const date = new Date(timestamp);
   return date instanceof Date && !isNaN(date);
 };
 
+/**
+ * Generates a date range object for past X days
+ */
 export const getDateRange = (days) => {
   const end = new Date();
   const start = new Date(end);

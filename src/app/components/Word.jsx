@@ -1,4 +1,14 @@
-// src/components/Word.jsx
+/**
+ * Word Component (Word.jsx)
+ * -------------------------
+ * Expandable card component displaying a single German word and its English translation.
+ * 
+ * Beginners Guide:
+ * 1. Expandable State: Tapping the card toggles `isExpanded` boolean state to reveal/hide the English translation.
+ * 2. Speech: Speaker icon triggers German audio pronunciation.
+ * 3. Badge: Displays a "Word" tag badge to indicate single word vocabulary.
+ */
+
 import React, { useState } from 'react';
 import {
   View,
@@ -10,9 +20,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 
 const Word = ({ german, english }) => {
+  // State: whether card is expanded to reveal translation
   const [isExpanded, setIsExpanded] = useState(false);
+  // State: whether speech synthesis is actively running
   const [speaking, setSpeaking] = useState(false);
 
+  /**
+   * Speaks the German word out loud
+   */
   const speakWord = () => {
     if (speaking) {
       Speech.stop();
@@ -35,6 +50,7 @@ const Word = ({ german, english }) => {
       onPress={() => setIsExpanded(!isExpanded)}
       activeOpacity={0.7}
     >
+      {/* Main Row Header */}
       <View style={styles.header}>
         <View style={styles.wordContainer}>
           <Text style={styles.germanText}>{german}</Text>
@@ -53,6 +69,7 @@ const Word = ({ german, english }) => {
         />
       </View>
       
+      {/* Expanded translation content */}
       {isExpanded && (
         <View style={styles.expandedContent}>
           <Text style={styles.englishText}>{english}</Text>

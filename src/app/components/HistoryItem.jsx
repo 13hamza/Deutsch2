@@ -1,4 +1,16 @@
-// src/components/HistoryItem.jsx
+/**
+ * HistoryItem Component (HistoryItem.jsx)
+ * ---------------------------------------
+ * List row component rendering a single stored history item.
+ * 
+ * Beginners Guide:
+ * 1. Props:
+ *    - `item`: Object containing `{ id, german, english, timestamp }`.
+ *    - `onDelete`: Parent callback function to remove this item from storage.
+ * 2. Speech Synthesis: Tapping German or English text speaks that phrase out loud.
+ * 3. Date Formatting: Formats ISO timestamp into local time (e.g. 2:30 PM).
+ */
+
 import React from 'react';
 import {
   View,
@@ -10,6 +22,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 
 const HistoryItem = ({ item, onDelete }) => {
+  /**
+   * Speaks string out loud via expo-speech
+   */
   const speakText = (text, language) => {
     Speech.speak(text, {
       language: language === 'de' ? 'de' : 'en',
@@ -18,6 +33,9 @@ const HistoryItem = ({ item, onDelete }) => {
     });
   };
 
+  /**
+   * Converts ISO date string into readable hour & minute time format
+   */
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -26,6 +44,7 @@ const HistoryItem = ({ item, onDelete }) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
+        {/* German & English text rows */}
         <View style={styles.textContainer}>
           <TouchableOpacity
             onPress={() => speakText(item.german, 'de')}
@@ -44,6 +63,8 @@ const HistoryItem = ({ item, onDelete }) => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Timestamp and Delete Action Button */}
         <View style={styles.metadata}>
           <Text style={styles.timeText}>{formatTime(item.timestamp)}</Text>
           <TouchableOpacity
