@@ -1,56 +1,142 @@
-# Welcome to your Expo app 👋
+# Deutsch2 🇩🇪 🇬🇧
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Deutsch2** is an intuitive, feature-rich German-to-English language learning and translation mobile application built with React Native and Expo (SDK 57). It empowers users to translate German words and sentences, listen to accurate speech pronunciations, track translation history, and review vocabulary organized by words and full sentences.
 
-## Get started
+---
 
-1. Install dependencies
+## 📱 Download APK
 
-   ```bash
-   npm install
-   ```
+You can download and install the pre-built Android APK directly on your device:
 
-2. Start the app
+📥 **[Download Deutsch2 APK (Build #56befda5)](https://expo.dev/accounts/ameerhamza3242/projects/Deutsch2/builds/56befda5-ff9e-45f9-9f12-ffd333c20bf7)**
 
-   ```bash
-   npx expo start
-   ```
+### Installation Instructions for Android:
+1. Tap the link above to download the `.apk` file to your Android device.
+2. Open the downloaded file.
+3. If prompted, allow your browser or file manager to **"Install apps from unknown sources"**.
+4. Tap **Install** and open **Deutsch2**.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## ✨ Features
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **Instant German to English Translation**:
+  - Translates single words, full sentences, and common phrases.
+  - Multi-tier translation pipeline: Primary online translation (MyMemory API / Google Translate API) with local fallback dictionary support.
+- **Text-to-Speech (TTS) Pronunciation**:
+  - Listen to German pronunciation and English translations using `expo-speech`.
+- **History Tracking**:
+  - Automatically saves translated phrases locally using `@react-native-async-storage/async-storage`.
+  - Date-grouped history view with instant search and item deletion.
+- **Vocabulary & Sentence Review**:
+  - Filter saved items into single **Words** or full **Sentences** for flashcard-style learning and review.
+- **Offline Fallback**:
+  - Includes a built-in offline dictionary for essential German words and phrases when internet connectivity is limited.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 🛠 Tech Stack
+
+- **Framework**: [React Native](https://reactnative.dev/) (v0.86) with [Expo](https://expo.dev/) (SDK 57)
+- **Routing & Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based tab routing)
+- **Speech Engine**: [`expo-speech`](https://docs.expo.dev/versions/latest/sdk/speech/)
+- **Storage**: [`@react-native-async-storage/async-storage`](https://react-native-async-storage.github.io/async-storage/)
+- **Icons & UI**: `@expo/vector-icons` & React Native StyleSheet
+- **Language**: TypeScript / JavaScript
+
+---
+
+## 🚀 Getting Started (How to Run After Cloning)
+
+Follow these steps to set up and run the project locally on your machine.
+
+### 1. Prerequisites
+
+Ensure you have the following installed on your machine:
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [Git](https://git-scm.com/)
+- [Expo Go](https://expo.dev/go) app installed on your physical device (iOS/Android), or an Android Emulator / iOS Simulator setup on your computer.
+
+---
+
+### 2. Clone the Repository
+
+Clone this project to your local computer and navigate into the project directory:
 
 ```bash
-npm run reset-project
+git clone https://github.com/13hamza/Deutsch2.git
+cd Deutsch2
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+### 3. Install Dependencies
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Install all required NPM packages:
 
-## Learn more
+```bash
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 4. Start the Project
 
-## Join the community
+Launch the Expo development server:
 
-Join our community of developers creating universal apps.
+```bash
+npm start
+```
+*Alternatively, you can run `npx expo start`.*
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+### 5. Open the App
+
+Once the development server starts, you will see a QR code and interactive options in your terminal:
+
+- **Physical Device (Android/iOS)**: Scan the QR code using the **Expo Go** app (Android) or the native **Camera app** (iOS).
+- **Android Emulator**: Press `a` in the terminal (or run `npm run android`).
+- **iOS Simulator**: Press `i` in the terminal (or run `npm run ios`).
+- **Web Browser**: Press `w` in the terminal (or run `npm run web`).
+
+---
+
+## 📂 Project Structure
+
+```text
+Deutsch2/
+├── assets/                  # App icons, splash screens, and visual assets
+├── src/
+│   └── app/
+│       ├── (tabs)/          # Main tab screens (Translator, History, Review)
+│       │   ├── index.tsx    # Translator main screen
+│       │   ├── history.tsx  # Translation history screen
+│       │   └── review.tsx   # Vocabulary & sentence review screen
+│       ├── components/      # Reusable UI components (GermanInput, Word, Sentence, etc.)
+│       ├── services/        # Translation & Text-to-Speech service modules
+│       ├── storage/         # AsyncStorage persistence logic
+│       └── utils/           # Helper functions & formatters
+├── app.json                 # Expo configuration
+├── package.json             # Project dependencies and scripts
+├── tsconfig.json            # TypeScript configuration
+└── README.md                # Project documentation
+```
+
+---
+
+## 📜 Available Scripts
+
+In the project directory, you can run:
+
+- `npm start` - Starts the Expo development server.
+- `npm run android` - Starts the app on a connected Android device/emulator.
+- `npm run ios` - Starts the app on the iOS simulator.
+- `npm run web` - Runs the app in a web browser.
+- `npm run lint` - Runs ESLint to check code formatting and errors.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](file:///e:/pretended%20tobe%20learning/Andoird/Deutsch2/LICENSE) file for details.
