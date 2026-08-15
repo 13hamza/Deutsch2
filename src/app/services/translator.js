@@ -75,12 +75,20 @@ const DICTIONARY = {
   'ich gehe zur schule': 'I am going to school',
 };
 
+// Build reverse dictionary once (English -> German), derived from DICTIONARY
+const REVERSE_DICTIONARY = Object.entries(DICTIONARY).reduce((acc, [de, en]) => {
+  acc[en.toLowerCase()] = de.charAt(0).toUpperCase() + de.slice(1);
+  return acc;
+}, {});
+
 /**
  * Primary translation function
- * @param {string} text - German text input
- * @returns {Promise<string>} English translated string
+ * @param {string} text - Text input to translate
+ * @param {string} sourceLang - Source language code ('de' or 'en')
+ * @param {string} targetLang - Target language code ('en' or 'de')
+ * @returns {Promise<string>} Translated string
  */
-export const translateText = async (text) => {
+export const translateText = async (text, sourceLang = 'de', targetLang = 'en') => {
   if (!text || !text.trim()) {
     return '';
   }
@@ -97,8 +105,8 @@ export const translateText = async (text) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             q: cleanText,
-            source: 'de',
-            target: 'en',
+            source: sourceLang,
+            target: targetLang,
             format: 'text',
           }),
         }
@@ -116,7 +124,7 @@ export const translateText = async (text) => {
   try {
     const encodedText = encodeURIComponent(cleanText);
     const response = await fetch(
-      `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=de|en`
+      `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=${sourceLang}|${targetLang}`
     );
     const data = await response.json();
     if (data.responseData?.translatedText) {
@@ -126,29 +134,30 @@ export const translateText = async (text) => {
     console.warn('Free API offline or failed, using dictionary fallback:', err);
   }
 
-  // Tier 3: Local dictionary lookup fallback
-  return localDictionaryTranslate(cleanText);
+  // Tier 3: Local dictionary lookup fallback (direction-aware)
+  return localDictionaryTranslate(cleanText, sourceLang);
 };
 
 /**
  * Fallback translator using local lookup object
  */
-const localDictionaryTranslate = (text) => {
+const localDictionaryTranslate = (text, sourceLang = 'de') => {
+  const dict = sourceLang === 'de' ? DICTIONARY : REVERSE_DICTIONARY;
   const lower = text.toLowerCase().trim();
-  
-  if (DICTIONARY[lower]) {
-    return DICTIONARY[lower];
+
+  if (dict[lower]) {
+    return dict[lower];
   }
 
   // Word-by-word translation fallback if input is a sentence
   const words = text.split(/\s+/);
   if (words.length > 1) {
-    const translatedWords = words.map(w => {
+    const translatedWords = words.map((w) => {
       const cleanW = w.toLowerCase().replace(/[^a-zäöüß]/g, '');
-      return DICTIONARY[cleanW] || w;
+      return dict[cleanW] || w;
     });
     return translatedWords.join(' ');
   }
 
-  return `[EN] ${text}`;
+  return sourceLang === 'de' ? `[EN] ${text}` : `[DE] ${text}`;
 };

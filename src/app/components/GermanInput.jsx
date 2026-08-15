@@ -30,14 +30,18 @@ const GermanInput = ({
   onTranslate, 
   isLoading,
   placeholder,
+  onScan,
 }) => {
   return (
     <View style={styles.container}>
-      {/* Input container with relative positioning for absolute clear icon */}
+      {/* Input container with relative positioning for absolute top-right icons */}
       <View style={styles.inputWrapper}>
         <TextInput
-          style={styles.input}
-          placeholder={placeholder || "Enter German text..."}
+          style={[
+            styles.input,
+            { paddingRight: (onScan ? 36 : 0) + (value.length > 0 ? 36 : 0) + 12 },
+          ]}
+          placeholder={placeholder || "Enter text..."}
           placeholderTextColor="#999"
           value={value}
           onChangeText={onChangeText}
@@ -45,15 +49,27 @@ const GermanInput = ({
           numberOfLines={4}
           textAlignVertical="top" // Aligns text to top of box on Android
         />
-        {/* Quick clear (X) icon appears only when input has text */}
-        {value.length > 0 && (
-          <TouchableOpacity 
-            onPress={() => onChangeText('')} 
-            style={styles.clearButton}
-          >
-            <Ionicons name="close-circle" size={24} color="#999" />
-          </TouchableOpacity>
-        )}
+        {/* Top-right action icons: Camera/Scan and Clear (X) */}
+        <View style={styles.topRightIcons}>
+          {onScan && (
+            <TouchableOpacity 
+              onPress={onScan} 
+              style={styles.iconButton}
+              accessibilityLabel="Scan text from image"
+            >
+              <Ionicons name="camera-outline" size={22} color="#2c6b3f" />
+            </TouchableOpacity>
+          )}
+          {value.length > 0 && (
+            <TouchableOpacity 
+              onPress={() => onChangeText('')} 
+              style={styles.iconButton}
+              accessibilityLabel="Clear input text"
+            >
+              <Ionicons name="close-circle" size={22} color="#999" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Action Translate Button */}
@@ -89,13 +105,19 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 16,
     minHeight: 100,
-    paddingRight: 40,
+    paddingRight: 70,
     color: '#333',
   },
-  clearButton: {
+  topRightIcons: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 6,
+    right: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 4,
+    marginLeft: 4,
   },
   translateButton: {
     flexDirection: 'row',

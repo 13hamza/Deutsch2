@@ -64,8 +64,11 @@ const HistoryItem = ({ item, onDelete }) => {
           </View>
         </View>
 
-        {/* Timestamp and Delete Action Button */}
+        {/* Timestamp, Direction Tag and Delete Action Button */}
         <View style={styles.metadata}>
+          <Text style={styles.directionText}>
+            {item.direction === 'en-de' ? 'EN→DE' : 'DE→EN'}
+          </Text>
           <Text style={styles.timeText}>{formatTime(item.timestamp)}</Text>
           <TouchableOpacity
             onPress={() => onDelete(item.id)}
@@ -122,6 +125,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginLeft: 12,
+  },
+  directionText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#2c6b3f',
+    backgroundColor: '#e8f5e9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginRight: 6,
   },
   timeText: {
     fontSize: 12,

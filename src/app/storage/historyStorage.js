@@ -50,6 +50,7 @@ export const saveTranslation = async (translation) => {
     const history = await getHistory();
     const newItem = {
       id: Date.now().toString(), // Generate unique timestamp-based ID string
+      direction: 'de-en',
       ...translation,
       timestamp: translation.timestamp || new Date().toISOString(),
     };
