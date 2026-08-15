@@ -1,45 +1,58 @@
 /**
- * Translator Service Module (translator.js)
- * ----------------------------------------
- * Translates German text input to English.
- * 
- * Beginners Guide:
+ * Translator Service Module (translator.ts)
+ * -----------------------------------------
  * Multi-tier translation pipeline:
- * Tier 1: Official Google Translate API (if user configures a Google API key).
- * Tier 2: Free MyMemory Translation API endpoint (`https://api.mymemory.translated.net`).
- * Tier 3: Local offline dictionary fallback (`DICTIONARY` object) for common German words and phrases.
+ * Tier 1: Official Google Translate API (if user provides key)
+ * Tier 2: Free MyMemory API endpoint
+ * Tier 3: Comprehensive local dictionary fallback
  */
 
 let USER_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY || '';
 
-/**
- * Updates Google Translate API key dynamically
- */
-export const setApiKey = (key) => {
+export const setApiKey = (key: string): void => {
   USER_API_KEY = key;
 };
 
-// Built-in German-to-English dictionary for offline use
-const DICTIONARY = {
-  // Common Words
-  'haus': 'House',
+// Built-in German-to-English offline dictionary
+const DICTIONARY: Record<string, string> = {
+  // Greetings & Basics
   'hallo': 'Hello',
+  'guten morgen': 'Good morning',
+  'guten tag': 'Good day',
+  'guten abend': 'Good evening',
+  'gute nacht': 'Good night',
+  'tschüss': 'Bye / Goodbye',
+  'auf wiedersehen': 'Goodbye',
   'danke': 'Thank you',
+  'danke schön': 'Thank you very much',
+  'vielen dank': 'Thank you very much',
   'bitte': 'Please / You are welcome',
   'ja': 'Yes',
   'nein': 'No',
+  'vielleicht': 'Maybe',
+  'entschuldigung': 'Excuse me / Sorry',
+  'hilfe': 'Help',
   'gut': 'Good',
-  'morgen': 'Morning',
-  'nacht': 'Night',
-  'tag': 'Day',
-  'abend': 'Evening',
+  'schlecht': 'Bad',
+
+  // Common Objects & Nouns
+  'haus': 'House',
   'freund': 'Friend',
+  'freundin': 'Friend (female) / Girlfriend',
   'familie': 'Family',
+  'mutter': 'Mother',
+  'vater': 'Father',
+  'bruder': 'Brother',
+  'schwester': 'Sister',
+  'kind': 'Child',
   'wasser': 'Water',
   'brot': 'Bread',
   'kaffee': 'Coffee',
+  'tee': 'Tea',
   'bier': 'Beer',
   'wein': 'Wine',
+  'essen': 'Food / To eat',
+  'trinken': 'Drink / To drink',
   'buch': 'Book',
   'schule': 'School',
   'universität': 'University',
@@ -50,45 +63,66 @@ const DICTIONARY = {
   'land': 'Country',
   'auto': 'Car',
   'zug': 'Train',
+  'bus': 'Bus',
   'flugzeug': 'Airplane',
+  'bahnhof': 'Train station',
+  'flughafen': 'Airport',
+  'hotel': 'Hotel',
+  'restaurant': 'Restaurant',
   'katze': 'Cat',
   'hund': 'Dog',
+  'sonne': 'Sun',
+  'mond': 'Moon',
+  'tag': 'Day',
+  'nacht': 'Night',
+  'morgen': 'Morning',
+  'abend': 'Evening',
+  'heute': 'Today',
+  'morgen (zeit)': 'Tomorrow',
+  'gestern': 'Yesterday',
 
-  // Common Phrases
-  'guten morgen': 'Good morning',
-  'guten tag': 'Good day',
-  'guten abend': 'Good evening',
-  'gute nacht': 'Good night',
+  // Common Sentences & Questions
   'wie geht es dir': 'How are you?',
   'wie gehts': 'How are you?',
-  'danke schön': 'Thank you very much',
-  'auf wiedersehen': 'Goodbye',
+  'wie geht\'s': 'How are you?',
+  'wie heißen sie': 'What is your name?',
+  'wie heißt du': 'What is your name?',
+  'ich heiße': 'My name is',
+  'woher kommst du': 'Where are you from?',
+  'ich komme aus': 'I am from',
   'ich liebe dich': 'I love you',
-  'entschuldigung': 'Excuse me / Sorry',
   'sprechen sie englisch': 'Do you speak English?',
+  'sprichst du englisch': 'Do you speak English?',
   'ich spreche kein deutsch': 'I do not speak German',
   'ich verstehe nicht': 'I do not understand',
-  'hilfe': 'Help',
   'wo ist die toilette': 'Where is the bathroom?',
   'wie viel kostet das': 'How much does this cost?',
   'ich gehe heute zur universität': 'I am going to the university today',
   'ich gehe zur schule': 'I am going to school',
+  'haben sie eine reservierung': 'Do you have a reservation?',
+  'ich hätte gerne ein bier': 'I would like a beer, please',
 };
 
-// Build reverse dictionary once (English -> German), derived from DICTIONARY
-const REVERSE_DICTIONARY = Object.entries(DICTIONARY).reduce((acc, [de, en]) => {
-  acc[en.toLowerCase()] = de.charAt(0).toUpperCase() + de.slice(1);
-  return acc;
-}, {});
+// Build reverse dictionary once (English -> German)
+const REVERSE_DICTIONARY: Record<string, string> = Object.entries(DICTIONARY).reduce(
+  (acc, [de, en]) => {
+    const key = en.toLowerCase();
+    if (!acc[key]) {
+      acc[key] = de.charAt(0).toUpperCase() + de.slice(1);
+    }
+    return acc;
+  },
+  {} as Record<string, string>
+);
 
 /**
  * Primary translation function
- * @param {string} text - Text input to translate
- * @param {string} sourceLang - Source language code ('de' or 'en')
- * @param {string} targetLang - Target language code ('en' or 'de')
- * @returns {Promise<string>} Translated string
  */
-export const translateText = async (text, sourceLang = 'de', targetLang = 'en') => {
+export const translateText = async (
+  text: string,
+  sourceLang: 'de' | 'en' = 'de',
+  targetLang: 'de' | 'en' = 'en'
+): Promise<string> => {
   if (!text || !text.trim()) {
     return '';
   }
@@ -128,20 +162,24 @@ export const translateText = async (text, sourceLang = 'de', targetLang = 'en') 
     );
     const data = await response.json();
     if (data.responseData?.translatedText) {
-      return data.responseData.translatedText;
+      const translated = data.responseData.translatedText;
+      // Filter out raw error strings from API response if any
+      if (!translated.toUpperCase().includes('MYMEMORY WARNING')) {
+        return translated;
+      }
     }
   } catch (err) {
     console.warn('Free API offline or failed, using dictionary fallback:', err);
   }
 
-  // Tier 3: Local dictionary lookup fallback (direction-aware)
+  // Tier 3: Local dictionary lookup fallback
   return localDictionaryTranslate(cleanText, sourceLang);
 };
 
 /**
- * Fallback translator using local lookup object
+ * Fallback translator using local dictionary
  */
-const localDictionaryTranslate = (text, sourceLang = 'de') => {
+const localDictionaryTranslate = (text: string, sourceLang: 'de' | 'en' = 'de'): string => {
   const dict = sourceLang === 'de' ? DICTIONARY : REVERSE_DICTIONARY;
   const lower = text.toLowerCase().trim();
 
@@ -149,7 +187,7 @@ const localDictionaryTranslate = (text, sourceLang = 'de') => {
     return dict[lower];
   }
 
-  // Word-by-word translation fallback if input is a sentence
+  // Word-by-word translation fallback if sentence
   const words = text.split(/\s+/);
   if (words.length > 1) {
     const translatedWords = words.map((w) => {

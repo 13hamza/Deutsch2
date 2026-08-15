@@ -1,14 +1,7 @@
 /**
  * HistoryScreen Component ((tabs)/history.tsx)
  * -------------------------------------------
- * Displays a list of all saved translation records stored in local device storage.
- * 
- * Beginners Guide:
- * 1. useFocusEffect: An Expo Router / React Navigation hook that triggers every time this screen becomes active/focused.
- * 2. FlatList: A high-performance React Native component for rendering long scrollable lists efficiently.
- * 3. Search & Filter: Filters saved translations live as the user types in the search box.
- * 4. RefreshControl: Adds "pull to refresh" capability to re-fetch history manually.
- * 5. Clear & Delete: Provides user alerts to delete single translation items or wipe all history.
+ * Displays date-grouped history of all translations saved in device storage.
  */
 
 import React, { useState, useCallback } from 'react';
@@ -26,27 +19,17 @@ import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import HistoryItem from '../components/HistoryItem';
 import { getHistory, deleteTranslation, searchHistory, clearHistory } from '../storage/historyStorage';
-
-// TypeScript Interface describing the shape of a single history entry
-export interface HistoryItemType {
-  id: string;
-  german: string;
-  english: string;
-  timestamp: string;
-}
+import { HistoryItemType, GroupedHistory } from '../types';
+import { groupByDate } from '../utils/dateUtils';
 
 export default function HistoryScreen() {
-  // Array holding all stored history items
   const [history, setHistory] = useState<HistoryItemType[]>([]);
-  // Array holding history items filtered by user search query
   const [filteredHistory, setFilteredHistory] = useState<HistoryItemType[]>([]);
-  // State for current search text typed into the search bar
   const [searchQuery, setSearchQuery] = useState('');
-  // Pull-to-refresh state indicator
   const [refreshing, setRefreshing] = useState(false);
 
   /**
-   * Loads history entries from AsyncStorage
+   * Loads history items from storage
    */
   const loadHistory = useCallback(async () => {
     try {
@@ -63,16 +46,13 @@ export default function HistoryScreen() {
     }
   }, [searchQuery]);
 
-  // Re-run loadHistory whenever user switches tabs to view the History screen
+  // Reload history whenever user focuses this screen
   useFocusEffect(
     useCallback(() => {
       loadHistory();
     }, [loadHistory])
   );
 
-  /**
-   * Handles typing inside the search input box
-   */
   const handleSearchChange = async (text: string) => {
     setSearchQuery(text);
     if (text.trim()) {
@@ -83,9 +63,6 @@ export default function HistoryScreen() {
     }
   };
 
-  /**
-   * Deletes an individual translation item after user confirmation prompt
-   */
   const handleDelete = async (id: string) => {
     Alert.alert(
       'Delete Item',
@@ -97,16 +74,13 @@ export default function HistoryScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteTranslation(id);
-            await loadHistory(); // Refresh list after deletion
+            await loadHistory();
           },
         },
       ]
     );
   };
 
-  /**
-   * Clears all translation records after confirmation prompt
-   */
   const handleClearAll = () => {
     if (history.length === 0) return;
     Alert.alert(
@@ -126,46 +100,27 @@ export default function HistoryScreen() {
     );
   };
 
-  /**
-   * Pull-to-refresh callback function
-   */
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadHistory().then(() => setRefreshing(false));
   }, [loadHistory]);
 
-  /**
-   * Helper function: Groups translation items by date string (e.g., "8/14/2026")
-   */
-  const groupByDate = (items: HistoryItemType[]): [string, HistoryItemType[]][] => {
-    const groups: Record<string, HistoryItemType[]> = {};
-    items.forEach(item => {
-      const date = item.timestamp 
-        ? new Date(item.timestamp).toLocaleDateString()
-        : 'Recent';
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(item);
-    });
-    return Object.entries(groups);
-  };
-
-  /**
-   * Renders a single grouped section (Date header + items inside that date)
-   */
-  const renderSection = ({ item }: { item: [string, HistoryItemType[]] }) => {
-    const [date, items] = item;
+  const renderSection = ({ item }: { item: GroupedHistory }) => {
+    const { date, items } = item;
     return (
       <View style={styles.section}>
         {/* Date Group Header */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{date}</Text>
-          <Text style={styles.sectionCount}>{items.length} {items.length === 1 ? 'item' : 'items'}</Text>
+          <Text style={styles.sectionCount}>
+            {items.length} {items.length === 1 ? 'item' : 'items'}
+          </Text>
         </View>
         {/* Render each HistoryItem card */}
         {items.map((historyItem: HistoryItemType) => (
-          <HistoryItem 
-            key={historyItem.id || Math.random().toString()} 
-            item={historyItem} 
+          <HistoryItem
+            key={historyItem.id}
+            item={historyItem}
             onDelete={handleDelete}
           />
         ))}
@@ -175,45 +130,57 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Top Search Bar & Clear All Button */}
+      {/* Search Input Bar & Clear Action Button */}
       <View style={styles.topBar}>
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color="#94a3b8" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search history..."
+            placeholderTextColor="#94a3b8"
             value={searchQuery}
             onChangeText={handleSearchChange}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => handleSearchChange('')}>
-              <Ionicons name="close-circle" size={20} color="#999" />
+              <Ionicons name="close-circle" size={20} color="#94a3b8" />
             </TouchableOpacity>
           )}
         </View>
+
         {history.length > 0 && (
-          <TouchableOpacity onPress={handleClearAll} style={styles.clearAllBtn}>
-            <Ionicons name="trash" size={18} color="#e74c3c" />
+          <TouchableOpacity
+            onPress={handleClearAll}
+            style={styles.clearAllBtn}
+            accessibilityLabel="Clear all history"
+          >
+            <Ionicons name="trash-outline" size={20} color="#ef4444" />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Conditional rendering: Empty state vs FlatList */}
+      {/* List vs Empty state */}
       {filteredHistory.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="time-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyStateText}>No history yet</Text>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="time-outline" size={48} color="#2c6b3f" />
+          </View>
+          <Text style={styles.emptyStateText}>
+            {searchQuery ? 'No matching history' : 'No history yet'}
+          </Text>
           <Text style={styles.emptyStateSubtext}>
-            Your translations will automatically appear here
+            {searchQuery
+              ? 'Try searching for a different word or phrase'
+              : 'Your translations will automatically appear here'}
           </Text>
         </View>
       ) : (
         <FlatList
           data={groupByDate(filteredHistory)}
           renderItem={renderSection}
-          keyExtractor={([date]) => date}
+          keyExtractor={(group) => group.date}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2c6b3f']} />
           }
           contentContainerStyle={styles.listContent}
         />
@@ -225,24 +192,26 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7f5',
+    backgroundColor: '#f8fafc',
   },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 12,
+    paddingRight: 16,
+    paddingLeft: 4,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    margin: 16,
-    marginRight: 8,
+    backgroundColor: '#f1f5f9',
+    margin: 14,
+    marginRight: 10,
     paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderRadius: 10,
   },
   searchIcon: {
     marginRight: 8,
@@ -250,16 +219,20 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     paddingVertical: 10,
-    fontSize: 16,
+    fontSize: 15,
+    color: '#0f172a',
   },
   clearAllBtn: {
     padding: 10,
-    backgroundColor: '#fdeae8',
-    borderRadius: 8,
+    backgroundColor: '#fef2f2',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#fecaca',
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingVertical: 16,
+    paddingBottom: 40,
   },
   section: {
     marginBottom: 16,
@@ -268,17 +241,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 4,
+    marginBottom: 6,
   },
   sectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#334155',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   sectionCount: {
-    fontSize: 13,
-    color: '#888',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748b',
+    backgroundColor: '#e2e8f0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
   },
   emptyState: {
     flex: 1,
@@ -286,16 +267,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 40,
   },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f0fdf4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
   emptyStateText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#666',
-    marginTop: 16,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1b4332',
   },
   emptyStateSubtext: {
-    fontSize: 15,
-    color: '#999',
-    marginTop: 8,
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 6,
     textAlign: 'center',
+    lineHeight: 20,
   },
 });

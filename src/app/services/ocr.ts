@@ -1,29 +1,28 @@
 /**
- * OCR Service Module (ocr.js)
+ * OCR Service Module (ocr.ts)
  * ----------------------------
- * Lets the user pick/capture an image and extracts text from it using
- * the free OCR.space API (demo key). Returns the extracted text string.
+ * Captures or picks an image and extracts text using the OCR.space API.
  */
 
 import * as ImagePicker from 'expo-image-picker';
+import { OCRLanguage, PickImageResult } from '../types';
 
-// Free shared demo key — swap for your own key from https://ocr.space/ocrapi
 const OCR_API_KEY = 'helloworld';
 const OCR_API_URL = 'https://api.ocr.space/parse/image';
 
 /**
- * Asks for permission and opens the camera or gallery.
- * @param {'camera' | 'library'} source
- * @returns {Promise<{ base64: string } | null>}
+ * Requests permissions and launches camera or media library picker
  */
-export const pickImage = async (source = 'library') => {
+export const pickImage = async (
+  source: 'camera' | 'library' = 'library'
+): Promise<PickImageResult | null> => {
   const permissionResult =
     source === 'camera'
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
   if (!permissionResult.granted) {
-    throw new Error('Permission to access camera/gallery was denied.');
+    throw new Error('Permission to access camera or gallery was denied.');
   }
 
   const result =
@@ -39,17 +38,17 @@ export const pickImage = async (source = 'library') => {
 };
 
 /**
- * Sends a base64 image to OCR.space and returns extracted text.
- * @param {string} base64
- * @param {string} language - OCR.space language code, e.g. 'ger' or 'eng'
- * @returns {Promise<string>}
+ * Sends a base64 image to OCR.space and parses returned text
  */
-export const extractTextFromImage = async (base64, language = 'ger') => {
+export const extractTextFromImage = async (
+  base64: string,
+  language: OCRLanguage = 'ger'
+): Promise<string> => {
   const formData = new FormData();
   formData.append('apikey', OCR_API_KEY);
   formData.append('language', language);
   formData.append('base64Image', `data:image/jpeg;base64,${base64}`);
-  formData.append('OCREngine', '2'); // engine 2 handles German umlauts better
+  formData.append('OCREngine', '2'); // Engine 2 handles German umlauts (ä, ö, ü, ß) better
 
   const response = await fetch(OCR_API_URL, {
     method: 'POST',
@@ -59,7 +58,7 @@ export const extractTextFromImage = async (base64, language = 'ger') => {
   const data = await response.json();
 
   if (data.IsErroredOnProcessing) {
-    throw new Error(data.ErrorMessage?.[0] || 'OCR failed to process image.');
+    throw new Error(data.ErrorMessage?.[0] || 'OCR failed to process the image.');
   }
 
   const text = data.ParsedResults?.[0]?.ParsedText || '';

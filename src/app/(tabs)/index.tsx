@@ -1,11 +1,8 @@
 /**
  * TranslatorScreen Component ((tabs)/index.tsx)
  * --------------------------------------------
- * Main Screen for Deutsch2 where users type text and receive translations in German or English.
- * 
- * Features:
- * 1. Image OCR Text Extraction via camera or gallery.
- * 2. Direction toggle (German → English ⇄ English → German).
+ * Main Screen for Deutsch2: Instant German <-> English text translation,
+ * speech synthesis, and OCR text extraction from images/camera.
  */
 
 import React, { useState } from 'react';
@@ -25,21 +22,13 @@ import TranslationCard from '../components/TranslationCard';
 import { translateText } from '../services/translator';
 import { pickImage, extractTextFromImage } from '../services/ocr';
 import { saveTranslation } from '../storage/historyStorage';
+import { TranslationDirection } from '../types';
 
 export default function TranslatorScreen() {
-  // State: holds the text entered by the user
   const [inputText, setInputText] = useState('');
-  
-  // State: holds the resulting translation
   const [translatedText, setTranslatedText] = useState('');
-  
-  // State: tracks translation direction: 'de-en' (German -> English) or 'en-de' (English -> German)
-  const [direction, setDirection] = useState<'de-en' | 'en-de'>('de-en');
-
-  // State: tracks whether a translation API call is currently in progress
+  const [direction, setDirection] = useState<TranslationDirection>('de-en');
   const [isLoading, setIsLoading] = useState(false);
-
-  // State: tracks whether an image OCR scan is in progress
   const [isScanning, setIsScanning] = useState(false);
 
   const sourceLang = direction === 'de-en' ? 'de' : 'en';
@@ -47,7 +36,7 @@ export default function TranslatorScreen() {
   const ocrLang = sourceLang === 'de' ? 'ger' : 'eng';
 
   /**
-   * Swaps translation direction and swaps input/output text
+   * Swaps translation direction and input/output text
    */
   const handleSwapLanguages = () => {
     setDirection((prev) => (prev === 'de-en' ? 'en-de' : 'de-en'));
@@ -56,7 +45,7 @@ export default function TranslatorScreen() {
   };
 
   /**
-   * Prompts source options or launches OCR image text extraction directly
+   * Prompts user for camera or gallery input
    */
   const handleScanImage = (source?: 'camera' | 'library') => {
     if (source) {
@@ -79,7 +68,7 @@ export default function TranslatorScreen() {
     try {
       setIsScanning(true);
       const image = await pickImage(source);
-      if (!image) return; // User cancelled image selection
+      if (!image) return;
 
       const text = await extractTextFromImage(image.base64, ocrLang);
       if (!text) {
@@ -91,14 +80,14 @@ export default function TranslatorScreen() {
       setTranslatedText('');
     } catch (error: any) {
       console.error('OCR error:', error);
-      Alert.alert('Error', error.message || 'Failed to extract text from image.');
+      Alert.alert('Scan Failed', error?.message || 'Failed to extract text from image.');
     } finally {
       setIsScanning(false);
     }
   };
 
   /**
-   * Triggers translation process when user presses "Translate" button
+   * Triggers translation
    */
   const handleTranslate = async () => {
     if (!inputText.trim()) {
@@ -111,14 +100,14 @@ export default function TranslatorScreen() {
       const result = await translateText(inputText, sourceLang, targetLang);
       setTranslatedText(result);
 
-      // Persist successful translation in AsyncStorage history
+      // Save translation in local history storage
       await saveTranslation({
         german: sourceLang === 'de' ? inputText.trim() : result,
         english: sourceLang === 'de' ? result : inputText.trim(),
         direction,
         timestamp: new Date().toISOString(),
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Translation error:', error);
       Alert.alert('Error', 'Failed to translate. Please try again.');
     } finally {
@@ -127,23 +116,24 @@ export default function TranslatorScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {/* Header Title & Direction Switcher Section */}
+        {/* Header Title & Direction Switcher */}
         <View style={styles.header}>
           <View style={styles.headerTitleRow}>
             <Text style={styles.headerTitle}>
-              {direction === 'de-en' ? 'German → English' : 'English → German'}
+              {direction === 'de-en' ? '🇩🇪 German → 🇬🇧 English' : '🇬🇧 English → 🇩🇪 German'}
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.swapButton}
               onPress={handleSwapLanguages}
               accessibilityLabel="Swap translation direction"
+              activeOpacity={0.7}
             >
-              <Ionicons name="swap-horizontal" size={20} color="#2c6b3f" />
+              <Ionicons name="swap-horizontal" size={18} color="#2c6b3f" />
               <Text style={styles.swapButtonText}>Swap</Text>
             </TouchableOpacity>
           </View>
@@ -154,7 +144,7 @@ export default function TranslatorScreen() {
           </Text>
         </View>
 
-        {/* Input box component with built-in camera scan trigger */}
+        {/* Multiline Input Box with OCR scan & Quick suggestions */}
         <GermanInput
           value={inputText}
           onChangeText={(text: string) => {
@@ -164,17 +154,18 @@ export default function TranslatorScreen() {
           onTranslate={handleTranslate}
           onScan={() => handleScanImage()}
           isLoading={isLoading || isScanning}
+          sourceLang={sourceLang}
           placeholder={
             direction === 'de-en'
-              ? 'Enter German text (e.g., Guten Morgen, Haus...)'
-              : 'Enter English text (e.g., Good morning, House...)'
+              ? 'Enter German text (e.g. Guten Morgen, Haus...)'
+              : 'Enter English text (e.g. Good morning, House...)'
           }
         />
 
-        {/* Result Card: Displayed only when translation result exists */}
+        {/* Translation Result Card */}
         {translatedText ? (
-          <TranslationCard 
-            germanText={sourceLang === 'de' ? inputText : translatedText} 
+          <TranslationCard
+            germanText={sourceLang === 'de' ? inputText : translatedText}
             englishText={sourceLang === 'de' ? translatedText : inputText}
           />
         ) : null}
@@ -183,11 +174,10 @@ export default function TranslatorScreen() {
   );
 }
 
-// Visual styling for translator screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7f5', // Soft light gray-green background
+    backgroundColor: '#f8fafc',
   },
   scrollContent: {
     padding: 20,
@@ -202,29 +192,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c6b3f', // Forest green theme
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1b4332',
   },
   swapButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e8f5e9',
+    backgroundColor: '#f0fdf4',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#c8e6c9',
+    borderColor: '#bbf7d0',
   },
   swapButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#2c6b3f',
     marginLeft: 4,
   },
   headerSubtitle: {
-    fontSize: 15,
-    color: '#666',
-    marginTop: 4,
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 6,
   },
 });

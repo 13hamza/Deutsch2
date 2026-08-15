@@ -1,6 +1,13 @@
 # Deutsch2 🇩🇪 🇬🇧
 
-**Deutsch2** is an intuitive, feature-rich German-to-English language learning and translation mobile application built with React Native and Expo (SDK 57). It empowers users to translate German words and sentences, listen to accurate speech pronunciations, track translation history, and review vocabulary organized by words and full sentences.
+[![Expo SDK 57](https://img.shields.io/badge/Expo-SDK%2057-000000.svg?style=flat-square&logo=expo)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-v0.86-61DAFB.svg?style=flat-square&logo=react)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178C6.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+
+**Deutsch2** is a modern, intuitive, and feature-rich German-to-English language learning and translation mobile application built with React Native and Expo (SDK 57).
+
+Designed for learners, travelers, and students, Deutsch2 seamlessly translates German words and sentences, speaks natural audio pronunciations, extracts printed text from photos using OCR camera scanning, and organizes saved vocabulary into flashcards for effective review.
 
 ---
 
@@ -20,33 +27,45 @@ You can download and install the pre-built Android APK directly on your device:
 
 ## ✨ Features
 
-- **Instant German to English Translation**:
-  - Translates single words, full sentences, and common phrases.
-  - Multi-tier translation pipeline: Primary online translation (MyMemory API / Google Translate API) with local fallback dictionary support.
-- **Text-to-Speech (TTS) Pronunciation**:
-  - Listen to German pronunciation and English translations using `expo-speech`.
-- **History Tracking**:
+- 🔄 **Bidirectional Translation (German ⇄ English)**:
+  - Translate single words, full sentences, and common phrases.
+  - Multi-tier translation pipeline: Primary Google Translate API / MyMemory API with an expansive offline dictionary fallback.
+  - Quick-suggestion chips for common everyday German phrases.
+
+- 📷 **OCR Image Text Extraction**:
+  - Scan printed German text from signs, menus, books, or documents using device camera or gallery photos (`expo-image-picker` & OCR engine).
+
+- 🔊 **Text-to-Speech (TTS) Pronunciation**:
+  - Listen to authentic German pronunciation and English translations using `expo-speech`.
+  - **Interactive Word Breakdown**: Tap individual word pills inside translated sentences to hear just that word pronounced!
+
+- 📚 **Date-Grouped Translation History**:
   - Automatically saves translated phrases locally using `@react-native-async-storage/async-storage`.
-  - Date-grouped history view with instant search and item deletion.
-- **Vocabulary & Sentence Review**:
-  - Filter saved items into single **Words** or full **Sentences** for flashcard-style learning and review.
-- **Offline Fallback**:
-  - Includes a built-in offline dictionary for essential German words and phrases when internet connectivity is limited.
+  - Grouped by date ("Today", "Yesterday", relative time) with instant live search and single/bulk deletion.
+
+- 🎴 **Flashcard Vocabulary Review**:
+  - Filter saved items into single **Words** or full **Sentences**.
+  - Expandable flashcards with word count metrics, pronunciation triggers, and quick copy actions.
+
+- 📋 **Clipboard Copy & Feedback**:
+  - Quick copy action on all translation cards, history items, and review cards.
 
 ---
 
 ## 🛠 Tech Stack
 
 - **Framework**: [React Native](https://reactnative.dev/) (v0.86) with [Expo](https://expo.dev/) (SDK 57)
-- **Routing & Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based tab routing)
+- **Routing & Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based tab navigation)
+- **Language**: TypeScript (`.ts` / `.tsx`)
 - **Speech Engine**: [`expo-speech`](https://docs.expo.dev/versions/latest/sdk/speech/)
+- **Camera & Gallery**: [`expo-image-picker`](https://docs.expo.dev/versions/latest/sdk/image-picker/)
 - **Storage**: [`@react-native-async-storage/async-storage`](https://react-native-async-storage.github.io/async-storage/)
-- **Icons & UI**: `@expo/vector-icons` & React Native StyleSheet
-- **Language**: TypeScript / JavaScript
+- **Icons & UI**: `@expo/vector-icons` (Ionicons) & React Native StyleSheet
+- **OCR Engine**: OCR.space API (Engine 2 for German umlauts `ä, ö, ü, ß`)
 
 ---
 
-## 🚀 Getting Started (How to Run After Cloning)
+## 🚀 Getting Started
 
 Follow these steps to set up and run the project locally on your machine.
 
@@ -55,13 +74,11 @@ Follow these steps to set up and run the project locally on your machine.
 Ensure you have the following installed on your machine:
 - [Node.js](https://nodejs.org/) (v18 or higher recommended)
 - [Git](https://git-scm.com/)
-- [Expo Go](https://expo.dev/go) app installed on your physical device (iOS/Android), or an Android Emulator / iOS Simulator setup on your computer.
+- [Expo Go](https://expo.dev/go) app installed on your physical device (iOS/Android), or an Android Emulator / iOS Simulator.
 
 ---
 
 ### 2. Clone the Repository
-
-Clone this project to your local computer and navigate into the project directory:
 
 ```bash
 git clone https://github.com/13hamza/Deutsch2.git
@@ -72,22 +89,18 @@ cd Deutsch2
 
 ### 3. Install Dependencies
 
-Install all required NPM packages:
-
 ```bash
 npm install
 ```
 
 ---
 
-### 4. Start the Project
-
-Launch the Expo development server:
+### 4. Start the Development Server
 
 ```bash
 npm start
 ```
-*Alternatively, you can run `npx expo start`.*
+*Or run `npx expo start`.*
 
 ---
 
@@ -95,30 +108,43 @@ npm start
 
 Once the development server starts, you will see a QR code and interactive options in your terminal:
 
-- **Physical Device (Android/iOS)**: Scan the QR code using the **Expo Go** app (Android) or the native **Camera app** (iOS).
-- **Android Emulator**: Press `a` in the terminal (or run `npm run android`).
-- **iOS Simulator**: Press `i` in the terminal (or run `npm run ios`).
-- **Web Browser**: Press `w` in the terminal (or run `npm run web`).
+- **Physical Device (Android/iOS)**: Scan the QR code using the **Expo Go** app (Android) or native **Camera app** (iOS).
+- **Android Emulator**: Press `a` in terminal (or run `npm run android`).
+- **iOS Simulator**: Press `i` in terminal (or run `npm run ios`).
+- **Web Browser**: Press `w` in terminal (or run `npm run web`).
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Architecture
 
 ```text
 Deutsch2/
 ├── assets/                  # App icons, splash screens, and visual assets
 ├── src/
 │   └── app/
-│       ├── (tabs)/          # Main tab screens (Translator, History, Review)
-│       │   ├── index.tsx    # Translator main screen
-│       │   ├── history.tsx  # Translation history screen
-│       │   └── review.tsx   # Vocabulary & sentence review screen
-│       ├── components/      # Reusable UI components (GermanInput, Word, Sentence, etc.)
-│       ├── services/        # Translation & Text-to-Speech service modules
-│       ├── storage/         # AsyncStorage persistence logic
-│       └── utils/           # Helper functions & formatters
-├── app.json                 # Expo configuration
-├── package.json             # Project dependencies and scripts
+│       ├── (tabs)/          # Main tab screens (Expo Router)
+│       │   ├── _layout.tsx  # Bottom tab navigation bar configuration
+│       │   ├── index.tsx    # Translator main screen (German ⇄ English & OCR)
+│       │   ├── history.tsx  # Date-grouped translation history screen
+│       │   └── review.tsx   # Vocabulary & sentence flashcard review screen
+│       ├── components/      # Reusable UI components (TypeScript)
+│       │   ├── GermanInput.tsx      # Multiline input with scan & suggestion chips
+│       │   ├── TranslationCard.tsx  # Result card with interactive word pills & TTS
+│       │   ├── HistoryItem.tsx      # History row component with copy & delete
+│       │   ├── Word.tsx             # Word flashcard review card
+│       │   └── Sentence.tsx         # Sentence flashcard review card
+│       ├── services/        # Business logic & API services
+│       │   ├── translator.ts # Multi-tier translation pipeline & offline dictionary
+│       │   ├── speech.ts     # Text-To-Speech (TTS) helper module
+│       │   └── ocr.ts        # Camera/Gallery image picker & OCR API integration
+│       ├── storage/         # Local persistence layer
+│       │   └── historyStorage.ts # AsyncStorage CRUD operations
+│       ├── types/           # Centralized TypeScript definitions
+│       │   └── index.ts      # Interfaces for history, translation, and OCR
+│       └── utils/           # Helper utilities
+│           └── dateUtils.ts  # Date formatting, grouping, and relative time helpers
+├── app.json                 # Expo project configuration
+├── package.json             # NPM dependencies & scripts
 ├── tsconfig.json            # TypeScript configuration
 └── README.md                # Project documentation
 ```
@@ -130,8 +156,8 @@ Deutsch2/
 In the project directory, you can run:
 
 - `npm start` - Starts the Expo development server.
-- `npm run android` - Starts the app on a connected Android device/emulator.
-- `npm run ios` - Starts the app on the iOS simulator.
+- `npm run android` - Runs the app on a connected Android device/emulator.
+- `npm run ios` - Runs the app on the iOS simulator.
 - `npm run web` - Runs the app in a web browser.
 - `npm run lint` - Runs ESLint to check code formatting and errors.
 
@@ -139,4 +165,4 @@ In the project directory, you can run:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](file:///e:/pretended%20tobe%20learning/Andoird/Deutsch2/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

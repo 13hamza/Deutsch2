@@ -24,7 +24,7 @@ export default function NotFoundScreen() {
         <Text style={styles.title}>{"This screen doesn't exist."}</Text>
 
         {/* Expo Router Link component acts like an HTML <a> tag to navigate back home */}
-        <Link href="/(tabs)" style={styles.link}>
+        <Link href={"/(tabs)" as any} style={styles.link}>
           <Text style={styles.linkText}>Go to home screen!</Text>
         </Link>
       </View>
