@@ -1,7 +1,9 @@
 /**
  * Sentence Component (Sentence.tsx)
  * ---------------------------------
- * Component card for full German sentences in the vocabulary review tab.
+ * Beginner Guide:
+ * Flashcard card component specifically for full German sentences in the Review collection tab.
+ * Tapping the card expands to show the full English sentence translation and sentence word count badge.
  */
 
 import React, { useState } from 'react';
@@ -15,15 +17,23 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 
+// Props Interface for Sentence component
 interface SentenceProps {
+  /** The full German sentence */
   german: string;
+  /** The full English sentence translation */
   english: string;
 }
 
 const Sentence: React.FC<SentenceProps> = ({ german, english }) => {
+  // State: Tracks expandable card toggle state
   const [isExpanded, setIsExpanded] = useState(false);
+  // State: Tracks active audio speech state
   const [speaking, setSpeaking] = useState(false);
 
+  /**
+   * Speaks full German sentence using native TTS engine
+   */
   const speakSentence = () => {
     if (speaking) {
       try {
@@ -47,10 +57,14 @@ const Sentence: React.FC<SentenceProps> = ({ german, english }) => {
     }
   };
 
+  /**
+   * Copies sentence translation pair to clipboard with alert notice
+   */
   const handleCopy = () => {
     Alert.alert('Copied', `"${german} = ${english}" copied!`);
   };
 
+  // Calculates word count of the German sentence
   const wordCount = german.trim().split(/\s+/).length;
 
   return (
@@ -59,6 +73,7 @@ const Sentence: React.FC<SentenceProps> = ({ german, english }) => {
       onPress={() => setIsExpanded(!isExpanded)}
       activeOpacity={0.8}
     >
+      {/* Header Row: German Sentence & Audio Pronunciation Button */}
       <View style={styles.header}>
         <View style={styles.sentenceContainer}>
           <Text style={styles.germanText} numberOfLines={isExpanded ? undefined : 1}>
@@ -73,6 +88,7 @@ const Sentence: React.FC<SentenceProps> = ({ german, english }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Right Actions: Copy Button & Expand Arrow Indicator */}
         <View style={styles.rightHeaderActions}>
           <TouchableOpacity onPress={handleCopy} style={styles.iconBtn}>
             <Ionicons name="copy-outline" size={18} color="#94a3b8" />
@@ -86,6 +102,7 @@ const Sentence: React.FC<SentenceProps> = ({ german, english }) => {
         </View>
       </View>
 
+      {/* Expanded Content: Rendered when `isExpanded === true` */}
       {isExpanded && (
         <View style={styles.expandedContent}>
           <Text style={styles.englishText}>🇬🇧 {english}</Text>
@@ -105,6 +122,7 @@ const Sentence: React.FC<SentenceProps> = ({ german, english }) => {
   );
 };
 
+// Component Visual Stylesheet
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',

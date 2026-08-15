@@ -1,8 +1,13 @@
 /**
  * TranslationCard Component (TranslationCard.tsx)
  * ----------------------------------------------
- * Result card displaying German text, interactive word pills for pronunciation,
- * English translation, and copy option.
+ * Beginner Guide:
+ * Displays the translation result card.
+ * Features:
+ * - German & English flag badges (🇩🇪 German, 🇬🇧 English).
+ * - Text-To-Speech (TTS) audio speaker buttons for both languages.
+ * - Interactive Word Pills: Automatically breaks German sentences into clickable word chips so learners can tap a single word to hear its pronunciation!
+ * - One-tap Copy to Clipboard button with instant visual feedback alert.
  */
 
 import React, { useState } from 'react';
@@ -16,33 +21,42 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 
+// Props Interface: Expected input props for TranslationCard
 interface TranslationCardProps {
+  /** The German text phrase */
   germanText: string;
+  /** The English text translation */
   englishText: string;
 }
 
 const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishText }) => {
+  // State: Tracks active audio speech language ('de', 'en', or null when stopped)
   const [speakingLang, setSpeakingLang] = useState<'de' | 'en' | null>(null);
+  
+  // State: Tracks copied label ('de' or 'en') for instant visual feedback
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   /**
-   * Speaks target text using specified language code
+   * Speaks target text out loud using native Text-To-Speech engine.
+   * If speech is already playing, tapping the button halts playback.
    */
   const speakText = (text: string, language: 'de' | 'en') => {
+    // If speaking, stop playback
     if (speakingLang) {
       try {
         Speech.stop();
       } catch {
-        // ignore
+        // Ignore error
       }
       setSpeakingLang(null);
       return;
     }
 
+    // Configure options for speech synthesis
     const options: Speech.SpeechOptions = {
       language: language === 'de' ? 'de' : 'en',
       pitch: 1.0,
-      rate: 0.8,
+      rate: 0.8, // Slightly lower speed for clear pronunciation learning
       onStart: () => setSpeakingLang(language),
       onDone: () => setSpeakingLang(null),
       onError: () => setSpeakingLang(null),
@@ -57,7 +71,7 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishTe
   };
 
   /**
-   * Simple copy feedback indicator for translation text
+   * Triggers a user alert indicating text has been copied.
    */
   const handleCopy = (text: string, label: string) => {
     setCopiedText(label);
@@ -66,7 +80,8 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishTe
   };
 
   /**
-   * Splits a sentence into single clean words
+   * Helper function: Splits a full sentence into an array of individual words.
+   * Example: "Guten Morgen Welt" -> ["Guten", "Morgen", "Welt"]
    */
   const splitIntoWords = (text: string): string[] => {
     return text.split(/\s+/).filter((word) => word.length > 0);
@@ -75,12 +90,13 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishTe
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        {/* German Flag Header & Action Buttons */}
+        {/* German Section Header: Flag Badge & Action Buttons */}
         <View style={styles.header}>
           <View style={styles.languageBadge}>
             <Text style={styles.languageBadgeText}>🇩🇪 German</Text>
           </View>
           <View style={styles.headerActions}>
+            {/* Copy German Text Action Button */}
             <TouchableOpacity
               onPress={() => handleCopy(germanText, 'de')}
               style={styles.actionIconButton}
@@ -92,6 +108,8 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishTe
                 color={copiedText === 'de' ? '#2c6b3f' : '#64748b'}
               />
             </TouchableOpacity>
+
+            {/* Listen to German TTS Action Button */}
             <TouchableOpacity
               onPress={() => speakText(germanText, 'de')}
               style={styles.actionIconButton}
@@ -106,13 +124,14 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishTe
           </View>
         </View>
 
-        {/* Main German Text */}
+        {/* Main German Translated Text */}
         <Text style={styles.germanMainText}>{germanText}</Text>
 
         {/* Interactive Word Breakdown Pills */}
         <Text style={styles.wordSectionTitle}>Tap any word to pronounce:</Text>
         <View style={styles.wordsWrapper}>
           {splitIntoWords(germanText).map((word, wordIndex) => {
+            // Strip punctuation marks (commas, periods, question marks) for accurate speech synthesis
             const cleanWord = word.replace(/[^a-zA-ZäöüßÄÖÜ]/g, '');
             return (
               <TouchableOpacity
@@ -127,15 +146,16 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishTe
           })}
         </View>
 
-        {/* Visual Divider Line */}
+        {/* Card Divider Line */}
         <View style={styles.divider} />
 
-        {/* English Flag Header & Action Buttons */}
+        {/* English Section Header: Flag Badge & Action Buttons */}
         <View style={styles.header}>
           <View style={[styles.languageBadge, styles.englishBadge]}>
             <Text style={styles.englishBadgeText}>🇬🇧 English</Text>
           </View>
           <View style={styles.headerActions}>
+            {/* Copy English Translation Action Button */}
             <TouchableOpacity
               onPress={() => handleCopy(englishText, 'en')}
               style={styles.actionIconButton}
@@ -147,6 +167,8 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishTe
                 color={copiedText === 'en' ? '#2c6b3f' : '#64748b'}
               />
             </TouchableOpacity>
+
+            {/* Listen to English TTS Action Button */}
             <TouchableOpacity
               onPress={() => speakText(englishText, 'en')}
               style={styles.actionIconButton}
@@ -161,13 +183,14 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ germanText, englishTe
           </View>
         </View>
 
-        {/* English Result Text */}
+        {/* English Translated Text Result */}
         <Text style={styles.englishText}>{englishText}</Text>
       </View>
     </View>
   );
 };
 
+// Component Visual Stylesheet
 const styles = StyleSheet.create({
   container: {
     marginTop: 18,

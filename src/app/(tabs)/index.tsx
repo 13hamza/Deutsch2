@@ -1,8 +1,19 @@
 /**
  * TranslatorScreen Component ((tabs)/index.tsx)
  * --------------------------------------------
- * Main Screen for Deutsch2: Instant German <-> English text translation,
- * speech synthesis, and OCR text extraction from images/camera.
+ * Beginner Guide:
+ * This is the main screen of the application where users type German or English text
+ * and receive real-time translations.
+ * 
+ * Features Breakdown:
+ * 1. State Management:
+ *    - `inputText`: Holds the user's typed text string.
+ *    - `translatedText`: Holds the output translated string.
+ *    - `direction`: Toggles between German -> English ('de-en') and English -> German ('en-de').
+ *    - `isLoading` & `isScanning`: Control loading spinner feedback states.
+ * 2. Swapping Direction: Swapping language directions automatically flips input and result text.
+ * 3. Image OCR Text Extraction: Captures/picks an image and extracts printed text into the input box.
+ * 4. Persistence: Automatically saves every successful translation to local device history storage.
  */
 
 import React, { useState } from 'react';
@@ -25,18 +36,29 @@ import { saveTranslation } from '../storage/historyStorage';
 import { TranslationDirection } from '../types';
 
 export default function TranslatorScreen() {
+  // State: Holds user input text string
   const [inputText, setInputText] = useState('');
+
+  // State: Holds generated translation result string
   const [translatedText, setTranslatedText] = useState('');
+
+  // State: Controls translation direction ('de-en' or 'en-de')
   const [direction, setDirection] = useState<TranslationDirection>('de-en');
+
+  // State: Tracks active translation API call
   const [isLoading, setIsLoading] = useState(false);
+
+  // State: Tracks active image OCR scan processing
   const [isScanning, setIsScanning] = useState(false);
 
+  // Computed language variables based on active direction
   const sourceLang = direction === 'de-en' ? 'de' : 'en';
   const targetLang = direction === 'de-en' ? 'en' : 'de';
   const ocrLang = sourceLang === 'de' ? 'ger' : 'eng';
 
   /**
-   * Swaps translation direction and input/output text
+   * Swaps translation direction ('de-en' <-> 'en-de')
+   * and automatically swaps input and output text strings.
    */
   const handleSwapLanguages = () => {
     setDirection((prev) => (prev === 'de-en' ? 'en-de' : 'de-en'));
@@ -45,7 +67,7 @@ export default function TranslatorScreen() {
   };
 
   /**
-   * Prompts user for camera or gallery input
+   * Prompts user to select image source (Camera vs Photo Gallery) for OCR scanning
    */
   const handleScanImage = (source?: 'camera' | 'library') => {
     if (source) {
@@ -64,11 +86,14 @@ export default function TranslatorScreen() {
     }
   };
 
+  /**
+   * Executes the image pick & OCR text extraction workflow
+   */
   const executeScan = async (source: 'camera' | 'library') => {
     try {
       setIsScanning(true);
       const image = await pickImage(source);
-      if (!image) return;
+      if (!image) return; // User canceled picker
 
       const text = await extractTextFromImage(image.base64, ocrLang);
       if (!text) {
@@ -87,7 +112,7 @@ export default function TranslatorScreen() {
   };
 
   /**
-   * Triggers translation
+   * Triggers main translation workflow when user taps "Translate"
    */
   const handleTranslate = async () => {
     if (!inputText.trim()) {
@@ -97,10 +122,11 @@ export default function TranslatorScreen() {
 
     setIsLoading(true);
     try {
+      // Step 1: Call translation pipeline service
       const result = await translateText(inputText, sourceLang, targetLang);
       setTranslatedText(result);
 
-      // Save translation in local history storage
+      // Step 2: Persist successful translation in AsyncStorage history
       await saveTranslation({
         german: sourceLang === 'de' ? inputText.trim() : result,
         english: sourceLang === 'de' ? result : inputText.trim(),
@@ -121,7 +147,7 @@ export default function TranslatorScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {/* Header Title & Direction Switcher */}
+        {/* Header Section: Title & Language Direction Swap Button */}
         <View style={styles.header}>
           <View style={styles.headerTitleRow}>
             <Text style={styles.headerTitle}>
@@ -144,7 +170,7 @@ export default function TranslatorScreen() {
           </Text>
         </View>
 
-        {/* Multiline Input Box with OCR scan & Quick suggestions */}
+        {/* Multiline Input Box Component */}
         <GermanInput
           value={inputText}
           onChangeText={(text: string) => {
@@ -162,7 +188,7 @@ export default function TranslatorScreen() {
           }
         />
 
-        {/* Translation Result Card */}
+        {/* Translation Result Card (Displayed only when result exists) */}
         {translatedText ? (
           <TranslationCard
             germanText={sourceLang === 'de' ? inputText : translatedText}
@@ -174,6 +200,7 @@ export default function TranslatorScreen() {
   );
 }
 
+// Visual Stylesheet
 const styles = StyleSheet.create({
   container: {
     flex: 1,

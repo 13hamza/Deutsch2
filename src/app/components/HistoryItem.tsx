@@ -1,7 +1,14 @@
 /**
  * HistoryItem Component (HistoryItem.tsx)
  * ---------------------------------------
- * Row card component rendering a single saved translation entry.
+ * Beginner Guide:
+ * Represents a single list row item in the History screen.
+ * Displays:
+ * - German & English translation pair.
+ * - Direction badge tag (`DE→EN` or `EN→DE`).
+ * - Human-readable relative timestamp (e.g. "Just now", "5m ago").
+ * - Text-To-Speech pronunciation audio trigger.
+ * - Quick copy & delete action buttons.
  */
 
 import React from 'react';
@@ -17,12 +24,18 @@ import * as Speech from 'expo-speech';
 import { HistoryItemType } from '../types';
 import { getRelativeTime } from '../utils/dateUtils';
 
+// Props Interface for HistoryItem
 interface HistoryItemProps {
+  /** The saved history record object */
   item: HistoryItemType;
+  /** Callback function triggered when user taps the trash/delete icon */
   onDelete: (id: string) => void;
 }
 
 const HistoryItem: React.FC<HistoryItemProps> = ({ item, onDelete }) => {
+  /**
+   * Speaks text out loud in German ('de') or English ('en')
+   */
   const speakText = (text: string, language: 'de' | 'en') => {
     try {
       Speech.speak(text, {
@@ -35,6 +48,9 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item, onDelete }) => {
     }
   };
 
+  /**
+   * Copies translation pair text to device clipboard with user feedback alert
+   */
   const handleCopy = (text: string) => {
     Alert.alert('Copied to Clipboard', `"${text}" copied!`);
   };
@@ -44,6 +60,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item, onDelete }) => {
       <View style={styles.content}>
         {/* German & English text rows */}
         <View style={styles.textContainer}>
+          {/* German text row with audio speaker icon */}
           <TouchableOpacity
             onPress={() => speakText(item.german, 'de')}
             style={styles.textRow}
@@ -52,7 +69,8 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item, onDelete }) => {
             <Text style={styles.germanText}>🇩🇪 {item.german}</Text>
             <Ionicons name="volume-medium" size={18} color="#2c6b3f" style={styles.speakIcon} />
           </TouchableOpacity>
-          
+
+          {/* English translation row with audio speaker icon */}
           <View style={styles.textRow}>
             <Text style={styles.englishText}>🇬🇧 {item.english}</Text>
             <TouchableOpacity
@@ -64,13 +82,17 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item, onDelete }) => {
           </View>
         </View>
 
-        {/* Metadata, Copy & Delete Actions */}
+        {/* Card Footer Metadata, Copy & Delete Actions */}
         <View style={styles.metadata}>
+          {/* Direction Tag Badge (DE→EN or EN→DE) */}
           <Text style={styles.directionText}>
             {item.direction === 'en-de' ? 'EN→DE' : 'DE→EN'}
           </Text>
+
+          {/* Relative Timestamp (e.g., "5m ago") */}
           <Text style={styles.timeText}>{getRelativeTime(item.timestamp)}</Text>
 
+          {/* Copy Action Button */}
           <TouchableOpacity
             onPress={() => handleCopy(`${item.german} = ${item.english}`)}
             style={styles.actionBtn}
@@ -79,6 +101,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item, onDelete }) => {
             <Ionicons name="copy-outline" size={18} color="#64748b" />
           </TouchableOpacity>
 
+          {/* Delete Action Button */}
           <TouchableOpacity
             onPress={() => onDelete(item.id)}
             style={styles.actionBtn}
@@ -92,6 +115,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item, onDelete }) => {
   );
 };
 
+// Component Visual Stylesheet
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',

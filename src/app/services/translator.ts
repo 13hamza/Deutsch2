@@ -1,19 +1,26 @@
 /**
  * Translator Service Module (translator.ts)
  * -----------------------------------------
- * Multi-tier translation pipeline:
- * Tier 1: Official Google Translate API (if user provides key)
- * Tier 2: Free MyMemory API endpoint
- * Tier 3: Comprehensive local dictionary fallback
+ * Beginner Guide:
+ * Translating text over the internet relies on external APIs, which can fail if internet connection is poor.
+ * To ensure the app always works seamlessly, we built a 3-tier fallback architecture:
+ * 
+ * 1. Tier 1: Official Google Translate API (Used if user configures a Google API key).
+ * 2. Tier 2: Free MyMemory API (`https://api.mymemory.translated.net`) - Online translation service.
+ * 3. Tier 3: Local Offline Dictionary - Built-in JavaScript dictionary containing everyday German words & phrases.
  */
 
+// Global variable holding optional user-provided Google Translate API Key
 let USER_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY || '';
 
+/**
+ * Dynamically sets or updates the Google Translate API key
+ */
 export const setApiKey = (key: string): void => {
   USER_API_KEY = key;
 };
 
-// Built-in German-to-English offline dictionary
+// Built-in German-to-English offline dictionary object for local fallback lookups
 const DICTIONARY: Record<string, string> = {
   // Greetings & Basics
   'hallo': 'Hello',
@@ -103,7 +110,7 @@ const DICTIONARY: Record<string, string> = {
   'ich hätte gerne ein bier': 'I would like a beer, please',
 };
 
-// Build reverse dictionary once (English -> German)
+// Automatically builds a reverse dictionary (English -> German) from the DICTIONARY object
 const REVERSE_DICTIONARY: Record<string, string> = Object.entries(DICTIONARY).reduce(
   (acc, [de, en]) => {
     const key = en.toLowerCase();
@@ -116,7 +123,17 @@ const REVERSE_DICTIONARY: Record<string, string> = Object.entries(DICTIONARY).re
 );
 
 /**
- * Primary translation function
+ * Main translation function.
+ * 
+ * Pipeline order:
+ * 1. Checks if user configured a Google Translate API Key. If yes, queries Google Cloud API.
+ * 2. If no key, queries the free MyMemory translation HTTP endpoint (`api.mymemory.translated.net`).
+ * 3. If offline or online APIs fail, falls back to the local `DICTIONARY` lookup object.
+ * 
+ * @param text - Input text string to translate
+ * @param sourceLang - Source language code ('de' or 'en')
+ * @param targetLang - Target language code ('de' or 'en')
+ * @returns Promise<string> The translated result text
  */
 export const translateText = async (
   text: string,
@@ -150,7 +167,7 @@ export const translateText = async (
         return data.data.translations[0].translatedText;
       }
     } catch (err) {
-      console.warn('Google Translate API error, falling back:', err);
+      console.warn('Google Translate API error, falling back to MyMemory API:', err);
     }
   }
 
@@ -163,31 +180,36 @@ export const translateText = async (
     const data = await response.json();
     if (data.responseData?.translatedText) {
       const translated = data.responseData.translatedText;
-      // Filter out raw error strings from API response if any
+      // Ensure API didn't return a quota error message
       if (!translated.toUpperCase().includes('MYMEMORY WARNING')) {
         return translated;
       }
     }
   } catch (err) {
-    console.warn('Free API offline or failed, using dictionary fallback:', err);
+    console.warn('Free API offline or failed, falling back to local dictionary:', err);
   }
 
-  // Tier 3: Local dictionary lookup fallback
+  // Tier 3: Local offline dictionary lookup fallback
   return localDictionaryTranslate(cleanText, sourceLang);
 };
 
 /**
- * Fallback translator using local dictionary
+ * Fallback translator using local lookup object when device is offline
+ * 
+ * @param text - Input text string
+ * @param sourceLang - Source language code ('de' or 'en')
+ * @returns Translated text string
  */
 const localDictionaryTranslate = (text: string, sourceLang: 'de' | 'en' = 'de'): string => {
   const dict = sourceLang === 'de' ? DICTIONARY : REVERSE_DICTIONARY;
   const lower = text.toLowerCase().trim();
 
+  // Exact phrase/word dictionary lookup match
   if (dict[lower]) {
     return dict[lower];
   }
 
-  // Word-by-word translation fallback if sentence
+  // Word-by-word translation fallback if input contains multiple words
   const words = text.split(/\s+/);
   if (words.length > 1) {
     const translatedWords = words.map((w) => {

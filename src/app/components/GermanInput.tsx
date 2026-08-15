@@ -1,8 +1,14 @@
 /**
  * GermanInput Component (GermanInput.tsx)
  * --------------------------------------
- * Multiline text input component with quick suggestion chips,
- * clear action, image OCR trigger, and copy option.
+ * Beginner Guide:
+ * This component handles user text input.
+ * It features:
+ * - A multiline `<TextInput>` for typing words or long sentences.
+ * - Action buttons inside the input box (Camera OCR scan button and Clear 'X' button).
+ * - Quick suggestion chips for fast testing when the input box is empty.
+ * - A character counter showing typed character length.
+ * - A "Translate" action button that triggers the translation process.
  */
 
 import React from 'react';
@@ -16,16 +22,25 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+// Props Interface: Defines all properties passed into this component from parent views
 interface GermanInputProps {
+  /** Current text string inside the input field */
   value: string;
+  /** Callback function invoked whenever text is typed or cleared */
   onChangeText: (text: string) => void;
+  /** Callback function invoked when user taps the "Translate" button */
   onTranslate: () => void;
+  /** Boolean indicating if translation or OCR scan is currently in progress */
   isLoading: boolean;
+  /** Placeholder hint text shown inside input field when empty */
   placeholder?: string;
+  /** Optional callback function to launch camera/gallery OCR scan */
   onScan?: () => void;
+  /** Current active language mode ('de' for German source, 'en' for English source) */
   sourceLang?: 'de' | 'en';
 }
 
+// Sample German phrase quick suggestions
 const SAMPLE_GERMAN_PHRASES = [
   'Guten Morgen',
   'Wie geht es dir?',
@@ -34,6 +49,7 @@ const SAMPLE_GERMAN_PHRASES = [
   'Ich hätte gerne ein Wasser',
 ];
 
+// Sample English phrase quick suggestions
 const SAMPLE_ENGLISH_PHRASES = [
   'Good morning',
   'How are you?',
@@ -51,11 +67,12 @@ const GermanInput: React.FC<GermanInputProps> = ({
   onScan,
   sourceLang = 'de',
 }) => {
+  // Select sample suggestions list based on active source language
   const suggestions = sourceLang === 'de' ? SAMPLE_GERMAN_PHRASES : SAMPLE_ENGLISH_PHRASES;
 
   return (
     <View style={styles.container}>
-      {/* Input container wrapper */}
+      {/* Input container wrapper with relative positioning */}
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
@@ -65,11 +82,13 @@ const GermanInput: React.FC<GermanInputProps> = ({
           onChangeText={onChangeText}
           multiline
           numberOfLines={4}
-          textAlignVertical="top"
-          maxLength={1000}
+          textAlignVertical="top" // Aligns text to top of box on Android devices
+          maxLength={1000}       // Caps input text length at 1000 characters
         />
-        {/* Action icons bar inside input container */}
+        
+        {/* Top-right action icon buttons inside input box */}
         <View style={styles.topRightIcons}>
+          {/* Camera Scan Button (Visible if onScan prop is provided) */}
           {onScan && (
             <TouchableOpacity
               onPress={onScan}
@@ -80,6 +99,8 @@ const GermanInput: React.FC<GermanInputProps> = ({
               <Ionicons name="camera-outline" size={22} color="#2c6b3f" />
             </TouchableOpacity>
           )}
+
+          {/* Clear text 'X' Button (Visible only when user has typed text) */}
           {value.length > 0 && (
             <TouchableOpacity
               onPress={() => onChangeText('')}
@@ -93,14 +114,14 @@ const GermanInput: React.FC<GermanInputProps> = ({
         </View>
       </View>
 
-      {/* Footer bar with character count */}
+      {/* Footer row displaying live character count when text is present */}
       {value.length > 0 && (
         <View style={styles.footerRow}>
           <Text style={styles.charCount}>{value.length} / 1000</Text>
         </View>
       )}
 
-      {/* Quick sample suggestion chips when input is empty */}
+      {/* Quick sample suggestion chips rendered when input box is empty */}
       {value.length === 0 && (
         <View style={styles.suggestionsContainer}>
           <Text style={styles.suggestionsTitle}>Quick Suggestions:</Text>
@@ -119,11 +140,11 @@ const GermanInput: React.FC<GermanInputProps> = ({
         </View>
       )}
 
-      {/* Action Translate Button */}
+      {/* Main Translate Button */}
       <TouchableOpacity
         style={[styles.translateButton, isLoading && styles.disabledButton]}
         onPress={onTranslate}
-        disabled={isLoading}
+        disabled={isLoading} // Disables press interactions while loading
         activeOpacity={0.8}
       >
         <Ionicons
@@ -139,6 +160,7 @@ const GermanInput: React.FC<GermanInputProps> = ({
   );
 };
 
+// Component Visual Stylesheet
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',

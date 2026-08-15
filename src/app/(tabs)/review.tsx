@@ -1,7 +1,15 @@
 /**
  * ReviewScreen Component ((tabs)/review.tsx)
  * -----------------------------------------
- * Flashcard-style review tab for saved vocabulary words and full sentences.
+ * Beginner Guide:
+ * Flashcard-style review tab for practicing translated words and full sentences.
+ * 
+ * Key Features:
+ * 1. Dynamic Filtering: Automatically categorizes saved history items by word count:
+ *    - Single word (e.g., "Haus") -> Rendered with expandable `<Word />` card.
+ *    - Full sentence (e.g., "Wie geht es dir?") -> Rendered with expandable `<Sentence />` card.
+ * 2. React `useMemo`: Efficiently memoizes filtered output arrays so expensive array filtering only re-runs when search query or filter type changes.
+ * 3. Interactive Category Chips: Filter buttons showing live counts (`All (12)`, `Words (5)`, `Sentences (7)`).
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
@@ -22,13 +30,20 @@ import { getHistory } from '../storage/historyStorage';
 import { HistoryItemType } from '../types';
 
 export default function ReviewScreen() {
+  // State: All loaded vocabulary items
   const [items, setItems] = useState<HistoryItemType[]>([]);
+
+  // State: Active search query string
   const [searchQuery, setSearchQuery] = useState('');
+
+  // State: Active filter category ('all', 'words', 'sentences')
   const [filterType, setFilterType] = useState<'all' | 'words' | 'sentences'>('all');
+
+  // State: Pull-to-refresh activity indicator
   const [refreshing, setRefreshing] = useState(false);
 
   /**
-   * Fetches saved items from local storage
+   * Fetches saved translation items from AsyncStorage local storage
    */
   const loadItems = useCallback(async () => {
     try {
@@ -39,6 +54,7 @@ export default function ReviewScreen() {
     }
   }, []);
 
+  // Reload vocabulary every time user taps onto the Review screen
   useFocusEffect(
     useCallback(() => {
       loadItems();
@@ -46,7 +62,7 @@ export default function ReviewScreen() {
   );
 
   /**
-   * Counts for Words and Sentences categories
+   * Count total items that are single words (word count === 1)
    */
   const wordCountTotal = useMemo(() => {
     return items.filter(
@@ -54,6 +70,9 @@ export default function ReviewScreen() {
     ).length;
   }, [items]);
 
+  /**
+   * Count total items that are full sentences (word count > 1)
+   */
   const sentenceCountTotal = useMemo(() => {
     return items.filter(
       (item) => item.german && item.german.trim().split(/\s+/).length > 1
@@ -61,11 +80,12 @@ export default function ReviewScreen() {
   }, [items]);
 
   /**
-   * Computed list of items based on category chips and search text
+   * Computed array of vocabulary items based on active category chips and search query
    */
   const filteredItems = useMemo(() => {
     let filtered = items;
 
+    // Filter by word vs sentence classification
     if (filterType === 'words') {
       filtered = filtered.filter(
         (item) => item.german && item.german.trim().split(/\s+/).length === 1
@@ -76,6 +96,7 @@ export default function ReviewScreen() {
       );
     }
 
+    // Filter by user search input query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(
@@ -88,11 +109,17 @@ export default function ReviewScreen() {
     return filtered;
   }, [items, searchQuery, filterType]);
 
+  /**
+   * Pull-to-refresh callback handler
+   */
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadItems().then(() => setRefreshing(false));
   }, [loadItems]);
 
+  /**
+   * Chooses appropriate component card representation: Word vs Sentence
+   */
   const renderItem = ({ item }: { item: HistoryItemType }) => {
     const isWord = item.german && item.german.trim().split(/\s+/).length === 1;
     return isWord ? (
@@ -102,6 +129,9 @@ export default function ReviewScreen() {
     );
   };
 
+  /**
+   * Resets active filter chips and search query back to default
+   */
   const clearFilters = () => {
     setSearchQuery('');
     setFilterType('all');
@@ -117,7 +147,7 @@ export default function ReviewScreen() {
         </Text>
       </View>
 
-      {/* Search Input Bar */}
+      {/* Search Bar Input */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#94a3b8" />
         <TextInput
@@ -134,7 +164,7 @@ export default function ReviewScreen() {
         )}
       </View>
 
-      {/* Filter Category Chips */}
+      {/* Category Filter Chips: All / Words / Sentences */}
       <View style={styles.filterContainer}>
         <TouchableOpacity
           style={[styles.filterButton, filterType === 'all' && styles.activeFilter]}
@@ -173,7 +203,7 @@ export default function ReviewScreen() {
         )}
       </View>
 
-      {/* Vocabulary List */}
+      {/* Vocabulary Flashcards FlatList */}
       <FlatList
         data={filteredItems}
         renderItem={renderItem}
@@ -200,6 +230,7 @@ export default function ReviewScreen() {
   );
 }
 
+// Component Visual Stylesheet
 const styles = StyleSheet.create({
   container: {
     flex: 1,

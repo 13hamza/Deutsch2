@@ -1,16 +1,30 @@
 /**
  * History Storage Module (historyStorage.ts)
  * ------------------------------------------
- * Local storage layer using `@react-native-async-storage/async-storage`.
+ * Beginner Guide:
+ * React Native provides `@react-native-async-storage/async-storage` as a simple,
+ * unencrypted, asynchronous key-value storage engine (like localStorage in web development).
+ * 
+ * Data Flow:
+ * 1. Saving: JavaScript Objects -> `JSON.stringify(data)` -> Disk Storage
+ * 2. Reading: Disk Storage -> `JSON.parse(string)` -> JavaScript Objects
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { HistoryItemType, TranslationDirection } from '../types';
 
+// The key string used to identify our stored history array in AsyncStorage
 const HISTORY_KEY = '@german_translator_history';
 
 /**
- * Retrieves all stored translation records from local storage
+ * Retrieves all stored translation records from local device disk storage.
+ * 
+ * How it works:
+ * - `AsyncStorage.getItem(key)` retrieves stored JSON text string.
+ * - `JSON.parse()` converts the JSON string back into a JavaScript array of objects.
+ * - Array `.sort()` sorts items by timestamp in descending order (newest first).
+ * 
+ * @returns Array of HistoryItemType objects sorted by newest first
  */
 export const getHistory = async (): Promise<HistoryItemType[]> => {
   try {
@@ -29,7 +43,17 @@ export const getHistory = async (): Promise<HistoryItemType[]> => {
 };
 
 /**
- * Saves a new translation item to local storage
+ * Saves a new translation item to local device storage.
+ * 
+ * How it works:
+ * 1. Reads existing history array from storage.
+ * 2. Generates a unique ID string combining timestamp and random text.
+ * 3. Prepends the new translation item to the beginning of the history array.
+ * 4. Limits array length to 1000 items (to conserve device storage space).
+ * 5. Saves serialized JSON string back to AsyncStorage.
+ * 
+ * @param translation - Object containing german text, english text, direction, and optional timestamp
+ * @returns Newly created HistoryItemType object
  */
 export const saveTranslation = async (translation: {
   german: string;
@@ -47,7 +71,7 @@ export const saveTranslation = async (translation: {
       timestamp: translation.timestamp || new Date().toISOString(),
     };
     
-    // Prepend new item to front of history array, capped at 1000 items
+    // Prepend new item to front of history array, capped at max 1000 entries
     const updatedHistory = [newItem, ...history].slice(0, 1000);
     await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
     return newItem;
@@ -58,7 +82,13 @@ export const saveTranslation = async (translation: {
 };
 
 /**
- * Deletes a single item by unique ID
+ * Deletes a single translation record by its unique ID string.
+ * 
+ * How it works:
+ * Uses JavaScript array `.filter()` method to create a new array excluding the target ID.
+ * 
+ * @param id - Unique item ID string to remove
+ * @returns Promise<boolean> true if successfully removed
  */
 export const deleteTranslation = async (id: string): Promise<boolean> => {
   try {
@@ -73,7 +103,9 @@ export const deleteTranslation = async (id: string): Promise<boolean> => {
 };
 
 /**
- * Deletes all stored history records
+ * Completely wipes all saved history entries from local storage.
+ * 
+ * @returns Promise<boolean> true if successfully cleared
  */
 export const clearHistory = async (): Promise<boolean> => {
   try {
@@ -86,7 +118,13 @@ export const clearHistory = async (): Promise<boolean> => {
 };
 
 /**
- * Filters stored history array matching search query
+ * Searches stored history matching a user search query string.
+ * 
+ * How it works:
+ * Case-insensitively checks if German or English text contains the query substring.
+ * 
+ * @param query - User typed search query
+ * @returns Filtered array of matching HistoryItemType items
  */
 export const searchHistory = async (query: string): Promise<HistoryItemType[]> => {
   try {
@@ -106,7 +144,9 @@ export const searchHistory = async (query: string): Promise<HistoryItemType[]> =
 };
 
 /**
- * Exports history array as formatted JSON string
+ * Exports all history entries as a formatted JSON string (useful for backup/sharing).
+ * 
+ * @returns Formatted JSON string or null
  */
 export const exportHistory = async (): Promise<string | null> => {
   try {
@@ -119,7 +159,10 @@ export const exportHistory = async (): Promise<string | null> => {
 };
 
 /**
- * Overwrites local history with imported JSON data array string
+ * Overwrites local storage history with imported JSON data array string.
+ * 
+ * @param jsonData - JSON formatted string containing history array
+ * @returns Promise<boolean> true if import succeeded
  */
 export const importHistory = async (jsonData: string): Promise<boolean> => {
   try {

@@ -1,7 +1,15 @@
 /**
  * HistoryScreen Component ((tabs)/history.tsx)
  * -------------------------------------------
- * Displays date-grouped history of all translations saved in device storage.
+ * Beginner Guide:
+ * Displays a list of all saved translation records stored in local device storage.
+ * 
+ * Key Concepts:
+ * 1. `useFocusEffect`: An Expo Router hook that re-runs every time the user taps onto the History tab screen.
+ * 2. `FlatList`: High-performance React Native component for rendering long scrollable lists efficiently.
+ * 3. Search & Filter: Filters saved translations live as the user types in the search input bar.
+ * 4. Pull-to-Refresh: Drag down from top of list to trigger `onRefresh()` and re-fetch items from disk storage.
+ * 5. Date Grouping: Uses `groupByDate()` helper to organize items under headers like "Today" or "Yesterday".
  */
 
 import React, { useState, useCallback } from 'react';
@@ -23,13 +31,20 @@ import { HistoryItemType, GroupedHistory } from '../types';
 import { groupByDate } from '../utils/dateUtils';
 
 export default function HistoryScreen() {
+  // State: Array of all loaded history records
   const [history, setHistory] = useState<HistoryItemType[]>([]);
+
+  // State: Array of history items filtered by active search query
   const [filteredHistory, setFilteredHistory] = useState<HistoryItemType[]>([]);
+
+  // State: Current search text typed into the search bar
   const [searchQuery, setSearchQuery] = useState('');
+
+  // State: Pull-to-refresh activity indicator
   const [refreshing, setRefreshing] = useState(false);
 
   /**
-   * Loads history items from storage
+   * Loads history items from local AsyncStorage disk storage
    */
   const loadHistory = useCallback(async () => {
     try {
@@ -46,13 +61,16 @@ export default function HistoryScreen() {
     }
   }, [searchQuery]);
 
-  // Reload history whenever user focuses this screen
+  // Re-run loadHistory whenever user switches tabs to view the History screen
   useFocusEffect(
     useCallback(() => {
       loadHistory();
     }, [loadHistory])
   );
 
+  /**
+   * Handles user typing in search input field
+   */
   const handleSearchChange = async (text: string) => {
     setSearchQuery(text);
     if (text.trim()) {
@@ -63,6 +81,9 @@ export default function HistoryScreen() {
     }
   };
 
+  /**
+   * Deletes a single item after user confirmation alert
+   */
   const handleDelete = async (id: string) => {
     Alert.alert(
       'Delete Item',
@@ -81,6 +102,9 @@ export default function HistoryScreen() {
     );
   };
 
+  /**
+   * Clears all history records after confirmation prompt
+   */
   const handleClearAll = () => {
     if (history.length === 0) return;
     Alert.alert(
@@ -100,11 +124,17 @@ export default function HistoryScreen() {
     );
   };
 
+  /**
+   * Pull-to-refresh callback function
+   */
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadHistory().then(() => setRefreshing(false));
   }, [loadHistory]);
 
+  /**
+   * Renders a single date section header and its nested translation cards
+   */
   const renderSection = ({ item }: { item: GroupedHistory }) => {
     const { date, items } = item;
     return (
@@ -130,7 +160,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Search Input Bar & Clear Action Button */}
+      {/* Top Search Input Bar & Clear All Button */}
       <View style={styles.topBar}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#94a3b8" style={styles.searchIcon} />
@@ -148,6 +178,7 @@ export default function HistoryScreen() {
           )}
         </View>
 
+        {/* Clear All trash icon button (Visible when history contains items) */}
         {history.length > 0 && (
           <TouchableOpacity
             onPress={handleClearAll}
@@ -159,7 +190,7 @@ export default function HistoryScreen() {
         )}
       </View>
 
-      {/* List vs Empty state */}
+      {/* Conditional Rendering: Empty State vs Date-Grouped FlatList */}
       {filteredHistory.length === 0 ? (
         <View style={styles.emptyState}>
           <View style={styles.emptyIconCircle}>
@@ -189,6 +220,7 @@ export default function HistoryScreen() {
   );
 }
 
+// Visual Stylesheet
 const styles = StyleSheet.create({
   container: {
     flex: 1,

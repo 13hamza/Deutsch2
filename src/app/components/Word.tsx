@@ -1,7 +1,9 @@
 /**
  * Word Component (Word.tsx)
  * -------------------------
- * Flashcard-style expandable card component for single German words.
+ * Beginner Guide:
+ * Flashcard-style expandable card component for single German words in the Review screen.
+ * Tapping the card toggles the `isExpanded` state to reveal/hide the English translation.
  */
 
 import React, { useState } from 'react';
@@ -15,15 +17,24 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 
+// Expected props for Word component
 interface WordProps {
+  /** The German single word */
   german: string;
+  /** The English translation string */
   english: string;
 }
 
 const Word: React.FC<WordProps> = ({ german, english }) => {
+  // State: Controls whether the flashcard is expanded to reveal translation
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // State: Tracks whether speech synthesis is actively reading out the word
   const [speaking, setSpeaking] = useState(false);
 
+  /**
+   * Speaks German word aloud using TTS
+   */
   const speakWord = () => {
     if (speaking) {
       try {
@@ -47,6 +58,9 @@ const Word: React.FC<WordProps> = ({ german, english }) => {
     }
   };
 
+  /**
+   * Copies word translation pair to clipboard with alert notice
+   */
   const handleCopy = () => {
     Alert.alert('Copied', `"${german} = ${english}" copied!`);
   };
@@ -57,6 +71,7 @@ const Word: React.FC<WordProps> = ({ german, english }) => {
       onPress={() => setIsExpanded(!isExpanded)}
       activeOpacity={0.8}
     >
+      {/* Header Row: German Word & Speaker Icon */}
       <View style={styles.header}>
         <View style={styles.wordContainer}>
           <Text style={styles.germanText}>{german}</Text>
@@ -69,6 +84,7 @@ const Word: React.FC<WordProps> = ({ german, english }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Right Actions: Copy & Expand Arrow Indicator */}
         <View style={styles.rightHeaderActions}>
           <TouchableOpacity onPress={handleCopy} style={styles.iconBtn}>
             <Ionicons name="copy-outline" size={18} color="#94a3b8" />
@@ -82,6 +98,7 @@ const Word: React.FC<WordProps> = ({ german, english }) => {
         </View>
       </View>
 
+      {/* Expanded Content: Visible only when `isExpanded === true` */}
       {isExpanded && (
         <View style={styles.expandedContent}>
           <Text style={styles.englishText}>🇬🇧 {english}</Text>
@@ -96,6 +113,7 @@ const Word: React.FC<WordProps> = ({ german, english }) => {
   );
 };
 
+// Visual Stylesheet
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
