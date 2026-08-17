@@ -15,7 +15,7 @@ Designed for learners, travelers, and students, Deutsch2 seamlessly translates G
 
 You can download and install the pre-built Android APK directly on your device:
 
-📥 **[Download Deutsch2 APK (Build #56befda5)](https://expo.dev/accounts/ameerhamza3242/projects/Deutsch2/builds/56befda5-ff9e-45f9-9f12-ffd333c20bf7)**
+📥 **[Download Deutsch2 APK (Build #56befda5)](https://expo.dev/accounts/ameerhamza3242/projects/Deutsch2/builds/4b0fd8c9-9cd5-4f3f-812e-1569af2f9ae5)**
 
 ### Installation Instructions for Android:
 1. Tap the link above to download the `.apk` file to your Android device.
